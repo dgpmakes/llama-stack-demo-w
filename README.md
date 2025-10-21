@@ -1,8 +1,9 @@
-# ELIGIBILITY ASSESSMENT MCP LLAMA STACK
+# LLAMA STACK DEMO
 
-Welcome to the Eligibility Assessment System powered by Llama Stack and Model Context Protocol (MCP)!
-This system helps assess eligibility for Family Care Unpaid Leave Support based on the Republic of Lysmark's Act No. 2025/47-SA.
-To get started quickly, jump straight to [installation](#install).
+Welcome to this Llama Stack Demo you can run easily on Red Hat OpenShift AI (RHOAI). It's a comprehensive demo that deploys everything you need to test agents with MCP tools on RHOAI using Llama Stack:
+- Models: IBM Granite 3.3 and Llama 3.1 deployed using vLLM Serving Runtime and automatically added to Llama Stack
+- MCP Servers: deployed as normal deployments and automatically added to Llama Stack
+- Llama Stack Server: Llama Stack Server is deployed using the Llama Stack Operator included in Red Hat OpenShift AI
 
 ## Trip Report
 
@@ -19,6 +20,11 @@ The inner to outer loop:
 
 
 ## Detailed description 
+
+Eligibility Assessment System powered by Llama Stack and Model Context Protocol (MCP)!
+This system helps assess eligibility for Family Care Unpaid Leave Support based on the Republic of Lysmark's Act No. 2025/47-SA.
+To get started quickly, jump straight to [installation](#install).
+
 
 The Eligibility Assessment MCP Llama Stack system is an intelligent solution for evaluating eligibility for Family Care Unpaid Leave Support based on the Republic of Lysmark's legislation (Act No. 2025/47-SA and related regulations). The system combines the power of Llama Stack with Model Context Protocol (MCP) servers and Retrieval Augmented Generation (RAG) to provide accurate, context-aware assessments.
 

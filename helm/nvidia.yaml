@@ -5,9 +5,8 @@ app: eligibility-lsd
 namespace: eligibility-mcp-llamastack
 partOf: eligibility-mcp-llamastack
 
-lsdName: rh-dev
-# lsdImage: quay.io/opendatahub/llama-stack:odh
-lsdImage: quay.io/opendatahub/llama-stack:rhoai-v2.23-latest
+# lsdName: rh-dev
+lsdImage: registry.redhat.io/rhoai/odh-llama-stack-core-rhel9:v2.23
 lsdBaseDir: /opt/app-root/src
 lsdPort: 8321
 
@@ -51,6 +50,8 @@ models:
       type: nvidia.com/gpu
       max: '1'
       min: '1'
+      nodeSelector:
+        group: 'llama-stack-demo'
       # productName: NVIDIA-A10G
     args:
       - '--enable-auto-tool-choice'
@@ -81,6 +82,8 @@ models:
       type: nvidia.com/gpu
       max: '1'
       min: '1'
+      nodeSelector:
+        group: 'llama-stack-demo'
       # productName: NVIDIA-A10G-SHARED
       # productName: T4-SHARED
     env:
@@ -101,7 +104,7 @@ mcpServers:
       uri: https://github.com/alpha-hack-program/eligibility-engine-mcp-rs.git
       ref: main
       path: .
-    image: quay.io/atarazana/eligibility-engine-mcp-rs:1.1.2
+    image: quay.io/atarazana/eligibility-engine-mcp-rs:1.1.4
     mcp_transport: "sse"
     protocol: "http"
     host: eligibility-engine

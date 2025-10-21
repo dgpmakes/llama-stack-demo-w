@@ -81,9 +81,16 @@ spec:
         key: {{ .accelerator.type }}
         operator: Exists
     {{- end }}
-    {{- if and .accelerator .accelerator.productName }}
+    {{- with .accelerator }}
+    {{- if .productName }}
     nodeSelector:
-      {{ .accelerator.type }}.product: {{ .accelerator.productName }}
+      {{ .type }}.product: {{ .productName }}
+    {{- else if .nodeSelector }}
+    nodeSelector:
+      {{- range $key, $value := .nodeSelector }}
+      {{ $key }}: {{ $value }}
+      {{- end }}
+    {{- end }}
     {{- end }}
 {{- if and (default true .rawDeployment) .externalAccess }}
 ---
