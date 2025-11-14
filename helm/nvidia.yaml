@@ -104,7 +104,7 @@ mcpServers:
       uri: https://github.com/alpha-hack-program/eligibility-engine-mcp-rs.git
       ref: main
       path: .
-    image: quay.io/atarazana/eligibility-engine-mcp-rs:1.1.4
+    image: quay.io/atarazana/eligibility-engine-mcp-rs:1.2.1
     mcp_transport: "sse"
     protocol: "http"
     host: eligibility-engine
@@ -128,7 +128,7 @@ mcpServers:
       uri: https://github.com/alpha-hack-program/compatibility-engine-mcp-rs.git
       ref: main
       path: .
-    image: quay.io/atarazana/compatibility-engine-mcp-rs:1.2.0
+    image: quay.io/atarazana/compatibility-engine-mcp-rs:1.3.3
     mcp_transport: "sse"
     protocol: "http"
     host: compatibility-engine
@@ -152,7 +152,7 @@ mcpServers:
   #     uri: https://github.com/alpha-hack-program/cluster-insights-mcp-rs.git
   #     ref: main
   #     path: .
-  #   image: quay.io/atarazana/cluster-insights-mcp-rs:1.2.1
+  #   image: quay.io/atarazana/cluster-insights-mcp-rs:1.3.2
   #   mcp_transport: "sse"
   #   protocol: "http"
   #   host: cluster-insights
@@ -184,3 +184,27 @@ mcpServers:
   #       - apiGroups: [""]
   #         resources: ["namespaces"]
   #         verbs: ["get", "list"]
+  # - id: mcp::finance-engine
+  #   provider_id: model-context-protocol
+  #   runtime: rust
+  #   vcs:
+  #     uri: https://github.com/alpha-hack-program/finance-engine-mcp-rs.git
+  #     ref: main
+  #     path: .
+  #   image: quay.io/atarazana/finance-engine-mcp-rs:1.1.2
+  #   mcp_transport: "sse"
+  #   protocol: "http"
+  #   host: finance-engine
+  #   port: 8000
+  #   uri: "/sse"
+  #   replicas: 1
+  #   resources:
+  #     limits:
+  #       cpu: 500m
+  #       memory: 128Mi
+  #     requests:
+  #       cpu: 250m
+  #       memory: 64Mi
+  #   env:
+  #     - name: RUST_LOG
+  #       value: "debug"

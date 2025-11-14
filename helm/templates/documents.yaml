@@ -12,822 +12,1123 @@ metadata:
     {{- end }}
     {{- end }}
 data:
+  parasol-earnings-report.md: |
+   # Parasol Cloud Corp ‒ FY2025 Earnings Report
+
+   ## Executive Summary
+
+   Parasol Cloud Corp delivered strong performance in FY2025, achieving record revenue
+   growth driven by subscription renewals and strategic upsells. The company maintained
+   a healthy opportunity pipeline, with active opportunities contributing to a projected
+   18% YoY growth. Customer engagement remains strong, with significant
+   improvements in SLA compliance despite an increase in high-severity support cases.
+
+
+   ## Financial Highlights
+
+   Total recognized revenue for FY2025 reached $48M, with $25M from enterprise
+   license renewals and $15M from subscription renewals. Cloud package upsells
+   contributed $5M, representing a 20% increase from last year. The closed opportunities
+   from legacy support contributed $8M but declined compared to FY2024 due to
+   product sunset initiatives.
+
+   ```
+   Revenue Stream FY2024 ($M) FY2025 ($M) YoY Growth
+   Subscription Renewals 12.5 15.0 20%
+   Enterprise License 22.0 25.0 14%
+   Upsells & Expansion 4.2 5.0 19%
+   Legacy Support 10.0 8.0 -20%
+   Total 48.7 53.0 9%
+   ```
+
+   ## Customer & Account Insights
+
+   Acme Corp and Globex Inc remain top contributors to revenue, together representing
+   65% of total billings. Acme Corp showed strong adoption of new cloud packages, while
+   Globex Inc continues to rely heavily on enterprise licensing. Soylent Corp, while
+   representing a smaller share, maintains a consistent revenue stream from legacy
+   products. Customer churn remains below 5%, an industry-leading figure.
+
+
+   ## Opportunity Pipeline Analysis
+
+   Active opportunities account for $45M in potential revenue. Tier A renewals have
+   shown particularly strong performance, with 90% renewal rates projected. The pipeline
+   health index remains at 0.82, indicating a well-balanced mix of early, mid, and
+   late-stage deals. The closed opportunities show a natural decline due to the phase-out
+   of legacy contracts, aligning with corporate strategy.
+
+
+   ## Support Case Analysis
+
+   A total of 6 support cases were logged during this reporting period. 50% of cases were
+   classified as high or critical severity, driven by API reliability issues and dashboard
+   performance incidents. Median resolution time improved by 12% compared to FY2024,
+   highlighting operational efficiencies in the support organization.
+
+
+   ## Year-over-Year Comparisons
+
+   Revenue grew 9% YoY, while operating costs rose by 6%, resulting in improved
+   operating margins. Customer satisfaction scores increased from 86 to 89, driven by
+   faster response times and product stability. Churn rates decreased by 1.5 points
+   compared to FY2024, largely attributed to proactive engagement programs.
+
+
+   ## Operational Metrics
+
+   SLA compliance improved to 98.5%, with major incidents handled within contractual
+   windows. First-contact resolution rates increased to 72%, up from 65% last year. The
+   support team has invested in automation and self-service capabilities, reducing
+   average case handling time from 4.5 hours to 3.8 hours.
+
+
+   ## Future Outlook
+
+   Parasol Cloud Corp is positioned for strong growth in FY2026, with plans to expand
+   into three new regional markets and introduce AI-powered analytics capabilities. The
+   sales team is focused on deepening relationships with existing enterprise clients while
+   pursuing net-new accounts in the financial services sector.
+
+
+   ## Recommendations
+
+   1. Continue to invest in API stability to reduce critical case volume. 2. Expand upsell
+   campaigns targeting mid-sized enterprise clients. 3. Leverage automation to further
+   reduce case handling times. 4. Strengthen partnerships with strategic accounts
+   through joint innovation workshops.
+
+
+   ## Appendix: Raw Data Summary
+
+   Opportunities: - (1) Active ¦ Account: Acme Corp ¦ Items: $15,000 (Tier A), $5,
+   (Cloud Upsell) - (2) Active ¦ Account: Globex Inc ¦ Items: $25,000 (Enterprise License
+   Renewal) - (3) Closed ¦ Account: Soylent Corp ¦ Items: $8,000 (Legacy Support)
+   Support Cases: - High severity login and dashboard issues logged for Acme Corp. -
+   Medium payment issue and high-severity email delivery issue for Globex Inc. - Critical
+   API outage for Soylent Corp. Resolution rates and severity breakdown indicate a focus
+   area for reliability improvements.
+
+
+
+  2025_61-FR.md: |
+   ---
+   **REPUBLIC OF LYSMARK**  
+   **MINISTRY OF FINANCE AND REVENUE**
+   ---
+
+   # ACT No. 2025/61-FR  
+   ## PROGRESSIVE INCOME TAX AND SURCHARGE ACT  
+
+   **Adopted:** 2 July 2025  
+   **Effective:** 1 September 2025  
+   **Legal Basis:** Constitution of Lysmark, Article 33 (Fiscal Sovereignty); Tax Harmonization Directive 2018/44 of the Union of Northern States  
+   **Official Journal Reference:** OJ FR 2025/61, p. 145-162  
+
+   ---
+
+   ### PREAMBLE  
+
+   The Parliament of the Republic of Lysmark, acting under Article 33 of the Constitution and mindful of its obligation to ensure equitable distribution of fiscal burdens, hereby enacts the following rules governing the calculation, collection, and application of the personal income tax.  
+
+   This Act codifies a progressive system of taxation to reflect ability to pay, introduces a surcharge mechanism to ensure adequate revenue in high-income segments, and establishes safeguards for transparency, fairness, and compliance.  
+
+   ---
+
+   ## Article 1 – Purpose and Scope  
+
+   1. This Act regulates the assessment of personal income tax on natural persons domiciled in the Republic of Lysmark.  
+   2. The system applies progressive rates to defined taxable income brackets, with an additional surcharge applied where total calculated tax exceeds the statutory threshold.  
+   3. This Act applies to all resident taxpayers; non-resident taxpayers remain subject to the Non-Residents Income Act.  
+
+   ---
+
+   ## Article 2 – Income Brackets and Rates  
+
+   1. Taxable income shall be divided into progressive brackets.  
+   2. Each bracket shall be subject to the following marginal rates:  
+      - First bracket: 10% on income up to **10000**  
+      - Second bracket: 20% on income exceeding **10000**  
+   3. Parliament may adjust bracket amounts annually by reference to the Consumer Price Index.  
+
+   ---
+
+   ## Article 3 – Surcharge  
+
+   1. Where the tax calculated pursuant to Article 2 exceeds **5000**, a surcharge of **2% of the total tax liability** shall be applied.  
+   2. The surcharge shall be collected concurrently with the principal tax liability and subject to the same enforcement and penalty provisions.  
+
+   ---
+
+   ## Article 4 – Taxpayer Obligations  
+
+   1. Every taxpayer shall file an annual income declaration no later than 31 March of the following year.  
+   2. The declaration shall include:  
+      - Gross income by source,  
+      - Deductible expenses,  
+      - Proof of residency, and  
+      - Any prior payments or withholdings.  
+   3. Failure to file shall result in administrative penalties as specified under the General Tax Code.  
+
+   ---
+
+   ## Article 5 – Collection and Enforcement  
+
+   1. The Ministry of Finance and Revenue shall issue collection notices within 90 days of filing.  
+   2. Taxpayers must settle liabilities within 30 days of notice unless enrolled in an authorized installment plan.  
+   3. Unpaid balances shall accrue statutory interest at 4% per annum until paid.  
+
+   ---
+
+   ## Article 6 – Appeals  
+
+   1. Taxpayers may contest assessments within 30 days of notice by filing an administrative appeal with the Directorate of Fiscal Review.  
+   2. Final administrative decisions may be appealed to the Fiscal Chamber of the Supreme Court of Lysmark.  
+
+   ---
+
+   ## Article 7 – Compatibility and Supremacy  
+
+   1. This Act supersedes prior provisions on progressive taxation under the 2009 Income Act.  
+   2. Provisions of this Act are compatible with obligations under the Union of Northern States’ Fiscal Harmonization Directive.  
+
+   ---
+
+   ## Article 8 – Implementation  
+
+   1. The Ministry of Finance and Revenue is tasked with issuing regulations necessary for the practical enforcement of this Act.  
+   2. This Act shall enter into force on **1 September 2025** and remain valid until amended or repealed by Parliament.  
+
+   ---
+
+   **Adopted by the Parliament of the Republic of Lysmark**  
+   **Promulgated by the President of the Republic of Lysmark**
+
+  2025_61-FR_INT.md: |
+   # REPUBLIC OF LYSMARK  
+   **MINISTRY OF FINANCE AND REVENUE**  
+   **Directorate of Tax Administration**  
+
+   ---
+
+   ## GUIDANCE NOTE No. 2025/61-FR/INT  
+   ### Application of the Progressive Income Tax and Surcharge Act (Act No. 2025/61-FR)  
+
+   **Effective:** 1 January 2026  
+   **Audience:** Tax Officers, Regional Tax Offices  
+   **Classification:** Internal – Operational Guidance  
+
+   ---
+
+   ## 1. Purpose  
+
+   This Guidance Note explains the method of assessment, calculation, and enforcement of the progressive income tax introduced under Act No. 2025/61-FR. It is intended for use by tax officers in reviewing declarations, issuing assessments, and advising taxpayers.  
+
+   ---
+
+   ## 2. General Principles  
+
+   1. **Progressive Taxation**: Tax liability increases as income rises, with different brackets applying different marginal rates.  
+   2. **Bracket Application**: Only income above a threshold is taxed at the higher rate.  
+   3. **Surcharge**: Applied if the total tax (before surcharge) exceeds **5000**.  
+
+   ---
+
+   ## 3. Step-by-Step Assessment Method  
+
+   ### Step 1 – Determine Taxable Income  
+   - Start with declared gross income.  
+   - Deduct allowable expenses (as defined under the General Tax Code).  
+   - Confirm residency for the fiscal year.  
+
+   ### Step 2 – Apply Brackets  
+   - **First Bracket**: Income up to 10000 → taxed at 10%.  
+   - **Second Bracket**: Any income above 10000 → taxed at 20%.  
+
+   ### Step 3 – Calculate Base Tax  
+   - Add the amounts from each bracket to determine base tax liability.  
+
+   ### Step 4 – Test for Surcharge  
+   - If base tax > 5000, apply surcharge = 2% × base tax.  
+
+   ### Step 5 – Issue Assessment  
+   - Record both base tax and surcharge clearly in notice.  
+   - Ensure taxpayer is informed of payment deadline.  
+
+   ---
+
+   ## 4. Worked Examples  
+
+   ### Example A – Middle Income  
+   Taxpayer earns **40000**.  
+   - First 10000 × 10% = 1000  
+   - Remaining 30000 × 20% = 6000  
+   - Base Tax = 7000  
+   - Since > 5000, surcharge = 2% × 7000 = 140  
+   - **Total Tax = 7,140**  
+
+   ### Example B – Low Income  
+   Taxpayer earns **8000**.  
+   - Entire 8000 falls within first bracket: 8000 × 10% = 800  
+   - Base Tax = 800 (< 5000) → No surcharge  
+   - **Total Tax = 800**  
+
+   ### Example C – High Income  
+   Taxpayer earns **120000**.  
+   - First 10000 × 10% = 1000  
+   - Remaining 110000 × 20% = 22000  
+   - Base Tax = 23000  
+   - Surcharge = 2% × 23000 = 460  
+   - **Total Tax = 23,460**  
+
+   ---
+
+   ## 5. Compliance and Enforcement  
+
+   - **Timeliness**: Ensure notices are issued within 90 days of filing.  
+   - **Interest**: Apply statutory 4% annual interest on overdue balances.  
+   - **Penalties**: Non-filers must be reported to Enforcement Division.  
+   - **Documentation**: Officers must retain assessment calculations in taxpayer’s digital file.  
+
+   ---
+
+   ## 6. Appeals  
+
+   - Appeals must be filed within 30 days.  
+   - Officers must provide complete reasoning and evidence for contested assessments.  
+   - All appeal submissions must be logged in the Fiscal Case Management System (FCMS).  
+
+   ---
+
+   ## 7. Closing Notes  
+
+   This Guidance Note shall be reviewed annually by the Directorate of Tax Administration. Updates will be issued in response to amendments in legislation or CPI-index adjustments of income brackets.  
+
+   ---
+
+   **Issued by:**  
+   Chief Tax Commissioner, Directorate of Tax Administration  
+   Republic of Lysmark  
+   **Date:** 10 July 2025  
+
+   **Classification:** Internal Operational Guidance – Not for public distribution
+
   2025-47-SA-Act.md: |
-    ---
+   ---
 
-    **REPUBLIC OF LYSMARK**  
-    **MINISTRY OF SOCIAL AFFAIRS AND EMPLOYMENT**
+   **REPUBLIC OF LYSMARK**  
+   **MINISTRY OF SOCIAL AFFAIRS AND EMPLOYMENT**
 
-    ---
+   ---
 
-    # ACT No. 2025/47-SA
-    ## FAMILY CARE UNPAID LEAVE SUPPORT ACT
+   # ACT No. 2025/47-SA
+   ## FAMILY CARE UNPAID LEAVE SUPPORT ACT
 
-    **Adopted:** 15 March 2025  
-    **Effective:** 1 April 2025  
-    **Legal Basis:** Constitution of Lysmark, Article 45 (Social Protection); European Social Charter, Article 16 (Social, Economic and Legal Protection of the Family)  
-    **Official Journal Reference:** OJ AR 2025/47, p. 1-8
+   **Adopted:** 15 March 2025  
+   **Effective:** 1 April 2025  
+   **Legal Basis:** Constitution of Lysmark, Article 45 (Social Protection); European Social Charter, Article 16 (Social, Economic and Legal Protection of the Family)  
+   **Official Journal Reference:** OJ AR 2025/47, p. 1-8
 
-    ---
+   ---
 
-    **PREAMBLE**
+   **PREAMBLE**
 
-    The Parliament of the Republic of Lysmark, having regard to the Constitution of Lysmark and in particular Article 45 thereof, having regard to the European Social Charter and the principles of work-life balance established by European Union Directive 2019/1158, and considering the need to support families in times of care responsibilities, hereby adopts this Act.
+   The Parliament of the Republic of Lysmark, having regard to the Constitution of Lysmark and in particular Article 45 thereof, having regard to the European Social Charter and the principles of work-life balance established by European Union Directive 2019/1158, and considering the need to support families in times of care responsibilities, hereby adopts this Act.
 
-    ## Article 1 - Purpose and Scope
+   ## Article 1 - Purpose and Scope
 
-    This Act establishes financial assistance for employed persons who take unpaid leave to provide direct, continuous, and permanent care for first-degree family members in specific circumstances. The assistance aims to facilitate work-life balance during periods of family care responsibilities.
+   This Act establishes financial assistance for employed persons who take unpaid leave to provide direct, continuous, and permanent care for first-degree family members in specific circumstances. The assistance aims to facilitate work-life balance during periods of family care responsibilities.
 
-    ## Article 2 - Eligible Situations
+   ## Article 2 - Eligible Situations
 
-    Financial assistance shall be granted for unpaid leave taken in the following cases:
+   Financial assistance shall be granted for unpaid leave taken in the following cases:
 
-    ### Case A: First-Degree Family Care (Sick/Injured)
-    Care for first-degree relatives (parents, children, spouse, or partner) who suffer from serious illness or accident requiring hospitalization and necessitating direct, continuous, and permanent care during and/or after the illness or accident.
+   ### Case A: First-Degree Family Care (Sick/Injured)
+   Care for first-degree relatives (parents, children, spouse, or partner) who suffer from serious illness or accident requiring hospitalization and necessitating direct, continuous, and permanent care during and/or after the illness or accident.
 
-    ### Case B: Third Child or More with Newborn
-    Care for minor children when the birth concerns the third child or subsequent children, provided that at least two family unit members, including the newborn, are under 6 years of age (or 9 years if they have a disability exceeding 33% and/or recognized dependency).
+   ### Case B: Third Child or More with Newborn
+   Care for minor children when the birth concerns the third child or subsequent children, provided that at least two family unit members, including the newborn, are under 6 years of age (or 9 years if they have a disability exceeding 33% and/or recognized dependency).
 
-    ### Case C: Adoption or Foster Care
-    Care for minor children in cases of adoption or foster care arrangements with expected duration exceeding one year.
+   ### Case C: Adoption or Foster Care
+   Care for minor children in cases of adoption or foster care arrangements with expected duration exceeding one year.
 
-    ### Case D: Multiple Birth, Adoption, or Foster Care
-    Care for minor children in cases of multiple births, adoptions, or foster care arrangements until children reach 6 years of age (or 9 years if they have a disability exceeding 33% and/or recognized dependency).
+   ### Case D: Multiple Birth, Adoption, or Foster Care
+   Care for minor children in cases of multiple births, adoptions, or foster care arrangements until children reach 6 years of age (or 9 years if they have a disability exceeding 33% and/or recognized dependency).
 
-    ### Case E: Single-Parent Family with Any Child
-    Care for minor children following birth (first child or subsequent children) for persons certified as single-parent families, until children reach 6 years of age (or 9 years if they have a disability exceeding 33% and/or recognized dependency).
+   ### Case E: Single-Parent Family with Any Child
+   Care for minor children following birth (first child or subsequent children) for persons certified as single-parent families, until children reach 6 years of age (or 9 years if they have a disability exceeding 33% and/or recognized dependency).
 
-    ## Article 3 - Financial Assistance Amounts
+   ## Article 3 - Financial Assistance Amounts
 
-    ### Monthly Assistance Rates
-    - **Case A (Family care for sick/injured)**: €725 per month
-    - **Cases B, C, D, E (Child care situations)**: €500 per month
+   ### Monthly Assistance Rates
+   - **Case A (Family care for sick/injured)**: €725 per month
+   - **Cases B, C, D, E (Child care situations)**: €500 per month
 
-    ### Proportional Adjustments
-    For part-time employment contracts, assistance shall be proportional to the working hours contributed during the six months prior to application, or for fixed-term discontinuous workers, the 180 days contributed in the immediately preceding year. Minimum eligible workload is 50% of full-time employment.
+   ### Proportional Adjustments
+   For part-time employment contracts, assistance shall be proportional to the working hours contributed during the six months prior to application, or for fixed-term discontinuous workers, the 180 days contributed in the immediately preceding year. Minimum eligible workload is 50% of full-time employment.
 
-    ## Article 4 - Eligibility Requirements
+   ## Article 4 - Eligibility Requirements
 
-    ### Residency Requirements
-    All family unit members must have effective residence in Lysmark for a minimum of two years prior to the start of unpaid leave, or alternatively, effective residence in Lysmark for five continuous years within the seven immediately preceding years.
+   ### Residency Requirements
+   All family unit members must have effective residence in Lysmark for a minimum of two years prior to the start of unpaid leave, or alternatively, effective residence in Lysmark for five continuous years within the seven immediately preceding years.
 
-    **Exceptions**: Residency requirements do not apply to minors in legally constituted foster care, minors under guardianship, or minors joining the family through adoption.
+   **Exceptions**: Residency requirements do not apply to minors in legally constituted foster care, minors under guardianship, or minors joining the family through adoption.
 
-    ### Employment Requirements
-    - **Cases B, C, D**: The applicant must be employed and their spouse/partner must be employed or have absolute incapacity to work
-    - **Cases A, E**: Only the applicant need be employed
-    - **Exclusive custody cases**: Only the applicant need be in unpaid leave situation
+   ### Employment Requirements
+   - **Cases B, C, D**: The applicant must be employed and their spouse/partner must be employed or have absolute incapacity to work
+   - **Cases A, E**: Only the applicant need be employed
+   - **Exclusive custody cases**: Only the applicant need be in unpaid leave situation
 
-    ### Additional Requirements
-    - Applicant must be registered for unpaid leave with social security
-    - Employer must be registered and current with social security
-    - Applicant must have been registered with social security for six months prior to application (or 180 days for fixed-term discontinuous workers)
-    - Current on all tax obligations and social security payments
-    - Family unit income must not exceed specified thresholds based on family size
+   ### Additional Requirements
+   - Applicant must be registered for unpaid leave with social security
+   - Employer must be registered and current with social security
+   - Applicant must have been registered with social security for six months prior to application (or 180 days for fixed-term discontinuous workers)
+   - Current on all tax obligations and social security payments
+   - Family unit income must not exceed specified thresholds based on family size
 
-    ### Income Thresholds
-    - 2-3 family members: ≤ 6 times annual National Minimum Income Standard (14 payments)
-    - 4 family members: ≤ 7 times annual National Minimum Income Standard (14 payments)
-    - 5 family members: ≤ 8 times annual National Minimum Income Standard (14 payments)
-    - 6 family members: ≤ 9 times annual National Minimum Income Standard (14 payments)
-    - Additional family members: +1 National Minimum Income Standard per additional member
+   ### Income Thresholds
+   - 2-3 family members: ≤ 6 times annual National Minimum Income Standard (14 payments)
+   - 4 family members: ≤ 7 times annual National Minimum Income Standard (14 payments)
+   - 5 family members: ≤ 8 times annual National Minimum Income Standard (14 payments)
+   - 6 family members: ≤ 9 times annual National Minimum Income Standard (14 payments)
+   - Additional family members: +1 National Minimum Income Standard per additional member
 
-    *Note: Persons with recognized disability ≥33% count as two persons for income calculations.*
+   *Note: Persons with recognized disability ≥33% count as two persons for income calculations.*
 
-    ## Article 5 - Application Process
+   ## Article 5 - Application Process
 
-    ### Application Period
-    Applications may be submitted from the day following publication of the annual budget authorization until November 2nd of the current year.
+   ### Application Period
+   Applications may be submitted from the day following publication of the annual budget authorization until November 2nd of the current year.
 
-    ### Required Documentation
-    - Identity documents for all family members
-    - Current residence certificate (maximum 3 months old)
-    - Family composition documentation
-    - Employment certificates for applicant and spouse/partner
-    - Company certificate confirming unpaid leave grant
-    - Medical certificates for Cases A (illness/accident documentation)
-    - Income declarations and tax returns
-    - Bank transfer authorization form
+   ### Required Documentation
+   - Identity documents for all family members
+   - Current residence certificate (maximum 3 months old)
+   - Family composition documentation
+   - Employment certificates for applicant and spouse/partner
+   - Company certificate confirming unpaid leave grant
+   - Medical certificates for Cases A (illness/accident documentation)
+   - Income declarations and tax returns
+   - Bank transfer authorization form
 
-    ### Processing Method
-    Applications shall be processed in order of submission on an individual evaluation basis, subject to available budget. Applications received after budget exhaustion shall be denied.
+   ### Processing Method
+   Applications shall be processed in order of submission on an individual evaluation basis, subject to available budget. Applications received after budget exhaustion shall be denied.
 
-    ## Article 6 - Payment and Duration
+   ## Article 6 - Payment and Duration
 
-    ### Payment Schedule
-    - First payment covers the period from unpaid leave start date to resolution signing
-    - Subsequent payments made monthly in arrears
-    - Payments made via bank transfer to designated account
+   ### Payment Schedule
+   - First payment covers the period from unpaid leave start date to resolution signing
+   - Subsequent payments made monthly in arrears
+   - Payments made via bank transfer to designated account
 
-    ### Maximum Duration
-    - Case A: No specified maximum duration
-    - Cases B, C, D, E: Maximum 12 months per annual call, with possibility of renewal up to three years total for the same qualifying family member
+   ### Maximum Duration
+   - Case A: No specified maximum duration
+   - Cases B, C, D, E: Maximum 12 months per annual call, with possibility of renewal up to three years total for the same qualifying family member
 
-    ### Termination
-    Assistance terminates when eligibility requirements are no longer met.
+   ### Termination
+   Assistance terminates when eligibility requirements are no longer met.
 
-    ## Article 7 - Compatibility and Restrictions
+   ## Article 7 - Compatibility and Restrictions
 
-    ### Incompatible Benefits
-    - Other public assistance for the same purpose and period
-    - Social security benefits for care of minors with cancer or serious illness
+   ### Incompatible Benefits
+   - Other public assistance for the same purpose and period
+   - Social security benefits for care of minors with cancer or serious illness
 
-    ### Compatible Benefits
-    - Dependency care assistance (subject to maximum amount limitations)
-    - Special Social Security agreements for non-professional caregivers
+   ### Compatible Benefits
+   - Dependency care assistance (subject to maximum amount limitations)
+   - Special Social Security agreements for non-professional caregivers
 
-    ### Single Application Rule
-    Only one application per call permitted, except for extensions of previously granted unpaid leave with temporal continuity.
+   ### Single Application Rule
+   Only one application per call permitted, except for extensions of previously granted unpaid leave with temporal continuity.
 
-    ## Article 8 - Obligations and Compliance
+   ## Article 8 - Obligations and Compliance
 
-    ### Beneficiary Obligations
-    - Report any changes in qualifying circumstances within 15 days
-    - Submit to control activities by competent authorities
-    - Maintain all eligibility requirements throughout assistance period
+   ### Beneficiary Obligations
+   - Report any changes in qualifying circumstances within 15 days
+   - Submit to control activities by competent authorities
+   - Maintain all eligibility requirements throughout assistance period
 
-    ### Reimbursement Requirements
-    Total or partial reimbursement with interest may be required if:
-    - Assistance obtained without meeting required conditions due to beneficiary fault
-    - False information provided
-    - Other causes specified in applicable subsidy legislation
+   ### Reimbursement Requirements
+   Total or partial reimbursement with interest may be required if:
+   - Assistance obtained without meeting required conditions due to beneficiary fault
+   - False information provided
+   - Other causes specified in applicable subsidy legislation
 
-    ## Article 9 - Appeals and Legal Framework
+   ## Article 9 - Appeals and Legal Framework
 
-    ### Appeal Process
-    Decisions may be appealed to the Ministry of Social Rights, Social Economy and Employment within one month of notification.
+   ### Appeal Process
+   Decisions may be appealed to the Ministry of Social Rights, Social Economy and Employment within one month of notification.
 
-    ### Applicable Law
-    This Act supplements the General Subsidy Law and related regulations of Lysmark.
+   ### Applicable Law
+   This Act supplements the General Subsidy Law and related regulations of Lysmark.
 
-    ## Article 10 - Implementation
+   ## Article 10 - Implementation
 
-    This Act enters into force upon publication and shall remain valid through 2027, subject to annual budget authorizations and implementing regulations.
+   This Act enters into force upon publication and shall remain valid through 2027, subject to annual budget authorizations and implementing regulations.
 
-    ---
+   ---
 
-    *This is a fictional document for demonstration purposes only.*
+   *This is a fictional document for demonstration purposes only.*
   2025-47-SA-R1.md: |
-    ---
+   ---
 
-    **REPUBLIC OF LYSMARK**  
-    **MINISTRY OF SOCIAL AFFAIRS AND EMPLOYMENT**
+   **REPUBLIC OF LYSMARK**  
+   **MINISTRY OF SOCIAL AFFAIRS AND EMPLOYMENT**
 
-    ---
+   ---
 
-    # REGULATION No. 2025/47-SA-R1
-    ## FAMILY RELATIONSHIP DEFINITIONS FOR UNPAID CARE LEAVE
-    ### Supplementary Regulation to Act No. 2025/47-SA
+   # REGULATION No. 2025/47-SA-R1
+   ## FAMILY RELATIONSHIP DEFINITIONS FOR UNPAID CARE LEAVE
+   ### Supplementary Regulation to Act No. 2025/47-SA
 
-    **Adopted:** 20 March 2025  
-    **Effective:** 1 April 2025  
-    **Legal Basis:** Act No. 2025/47-SA, Article 2; Constitution of Lysmark, Article 45  
-    **Official Journal Reference:** OJ AR 2025/48, p. 12-16
+   **Adopted:** 20 March 2025  
+   **Effective:** 1 April 2025  
+   **Legal Basis:** Act No. 2025/47-SA, Article 2; Constitution of Lysmark, Article 45  
+   **Official Journal Reference:** OJ AR 2025/48, p. 12-16
 
-    ---
+   ---
 
-    **PREAMBLE**
+   **PREAMBLE**
 
-    This regulation establishes the precise definitions of family relationships eligible for unpaid care leave assistance under the Family Care Unpaid Leave Support Act, ensuring clarity in application and consistent interpretation across all administrative bodies.
+   This regulation establishes the precise definitions of family relationships eligible for unpaid care leave assistance under the Family Care Unpaid Leave Support Act, ensuring clarity in application and consistent interpretation across all administrative bodies.
 
-    ## Article 1 - Scope and Purpose
+   ## Article 1 - Scope and Purpose
 
-    This regulation defines the accepted levels of relationship between the person taking unpaid leave and the person requiring care, as referenced in Article 2 of Act No. 2025/47-SA.
+   This regulation defines the accepted levels of relationship between the person taking unpaid leave and the person requiring care, as referenced in Article 2 of Act No. 2025/47-SA.
 
-    ## Article 2 - First-Degree Family Relationships by Consanguinity
+   ## Article 2 - First-Degree Family Relationships by Consanguinity
 
-    ### Direct Line Relationships
-    The following blood relationships qualify as first-degree family relationships:
+   ### Direct Line Relationships
+   The following blood relationships qualify as first-degree family relationships:
 
-    #### Parents and Children
-    - **Father** (*padre*): Biological, adoptive, or legally recognized father
-    - **Mother** (*madre*): Biological, adoptive, or legally recognized mother
-    - **Son** (*hijo*): Male child, biological or adoptive
-    - **Daughter** (*hija*): Female child, biological or adoptive
+   #### Parents and Children
+   - **Father** (*padre*): Biological, adoptive, or legally recognized father
+   - **Mother** (*madre*): Biological, adoptive, or legally recognized mother
+   - **Son** (*hijo*): Male child, biological or adoptive
+   - **Daughter** (*hija*): Female child, biological or adoptive
 
-    ### Legal Equivalencies
-    - Adoptive relationships carry the same legal weight as biological relationships
-    - Step-relationships do not qualify unless formal adoption has occurred
-    - Foster relationships qualify only when legal guardianship has been established
+   ### Legal Equivalencies
+   - Adoptive relationships carry the same legal weight as biological relationships
+   - Step-relationships do not qualify unless formal adoption has occurred
+   - Foster relationships qualify only when legal guardianship has been established
 
-    ## Article 3 - First-Degree Family Relationships by Affinity
+   ## Article 3 - First-Degree Family Relationships by Affinity
 
-    ### Spousal Relationships
-    The following marital and partnership relationships qualify:
+   ### Spousal Relationships
+   The following marital and partnership relationships qualify:
 
-    #### Legal Marriage
-    - **Spouse** (*cónyuge*): Person legally married under Lysmarkn civil law
-    - **Husband** (*marido/esposo*): Male spouse in legal marriage
-    - **Wife** (*esposa*): Female spouse in legal marriage
+   #### Legal Marriage
+   - **Spouse** (*cónyuge*): Person legally married under Lysmarkn civil law
+   - **Husband** (*marido/esposo*): Male spouse in legal marriage
+   - **Wife** (*esposa*): Female spouse in legal marriage
 
-    #### Registered Partnerships
-    - **Partner** (*pareja*): Person in legally registered civil partnership or domestic partnership recognized under Lysmarkn law
-    - **Civil partner**: Person in registered civil union with equivalent legal status to marriage
+   #### Registered Partnerships
+   - **Partner** (*pareja*): Person in legally registered civil partnership or domestic partnership recognized under Lysmarkn law
+   - **Civil partner**: Person in registered civil union with equivalent legal status to marriage
 
-    ### Documentation Requirements
-    - Marriage certificate or civil partnership registration
-    - For foreign marriages: Apostilled documents with certified translation
-    - Partnership agreements must be officially registered with competent Lysmarkn authorities
+   ### Documentation Requirements
+   - Marriage certificate or civil partnership registration
+   - For foreign marriages: Apostilled documents with certified translation
+   - Partnership agreements must be officially registered with competent Lysmarkn authorities
 
-    ## Article 4 - Extended Family Relationships (Non-Qualifying)
+   ## Article 4 - Extended Family Relationships (Non-Qualifying)
 
-    ### Second-Degree and Beyond
-    The following relationships do **NOT** qualify for unpaid care leave assistance:
+   ### Second-Degree and Beyond
+   The following relationships do **NOT** qualify for unpaid care leave assistance:
 
-    #### Siblings
-    - Brothers and sisters (second-degree consanguinity)
-    - Half-siblings and step-siblings
+   #### Siblings
+   - Brothers and sisters (second-degree consanguinity)
+   - Half-siblings and step-siblings
 
-    #### Grandparents and Grandchildren
-    - Grandparents (second-degree ascendant line)
-    - Grandchildren (second-degree descendant line)
+   #### Grandparents and Grandchildren
+   - Grandparents (second-degree ascendant line)
+   - Grandchildren (second-degree descendant line)
 
-    #### In-Laws
-    - Parents-in-law
-    - Children-in-law
-    - Siblings-in-law
+   #### In-Laws
+   - Parents-in-law
+   - Children-in-law
+   - Siblings-in-law
 
-    #### Other Relatives
-    - Aunts, uncles, cousins
-    - Nephews and nieces
-    - Any relationship beyond first degree
+   #### Other Relatives
+   - Aunts, uncles, cousins
+   - Nephews and nieces
+   - Any relationship beyond first degree
 
-    ## Article 5 - Special Circumstances and Clarifications
+   ## Article 5 - Special Circumstances and Clarifications
 
-    ### Legal Guardianship and Foster Care
-    - **Legal Guardian**: Person with court-appointed guardianship over a minor qualifies as equivalent to parent-child relationship
-    - **Foster Parent**: Qualified only when official foster care placement exceeds one year duration
-    - **Ward**: Minor under official guardianship is treated as child for relationship purposes
+   ### Legal Guardianship and Foster Care
+   - **Legal Guardian**: Person with court-appointed guardianship over a minor qualifies as equivalent to parent-child relationship
+   - **Foster Parent**: Qualified only when official foster care placement exceeds one year duration
+   - **Ward**: Minor under official guardianship is treated as child for relationship purposes
 
-    ### Unmarried Partnerships
-    - **Cohabiting Partners**: Must demonstrate stable cohabitation for minimum 2 years with shared residence and financial interdependence
-    - **Common-Law Relationships**: Require official declaration before competent authorities
-    - Documentary proof required: joint lease agreements, shared bank accounts, witness statements
+   ### Unmarried Partnerships
+   - **Cohabiting Partners**: Must demonstrate stable cohabitation for minimum 2 years with shared residence and financial interdependence
+   - **Common-Law Relationships**: Require official declaration before competent authorities
+   - Documentary proof required: joint lease agreements, shared bank accounts, witness statements
 
-    ### Same-Sex Relationships
-    - All relationship definitions apply equally regardless of gender or sexual orientation
-    - Same-sex marriages and partnerships carry identical rights and obligations
+   ### Same-Sex Relationships
+   - All relationship definitions apply equally regardless of gender or sexual orientation
+   - Same-sex marriages and partnerships carry identical rights and obligations
 
-    ## Article 6 - Proof of Relationship
+   ## Article 6 - Proof of Relationship
 
-    ### Required Documentation
-    Applicants must provide appropriate documentation to establish qualifying relationship:
+   ### Required Documentation
+   Applicants must provide appropriate documentation to establish qualifying relationship:
 
-    #### For Consanguinity
-    - Birth certificates showing direct lineage
-    - Adoption decrees (certified copies)
-    - DNA testing (in disputed cases, at administrative discretion)
+   #### For Consanguinity
+   - Birth certificates showing direct lineage
+   - Adoption decrees (certified copies)
+   - DNA testing (in disputed cases, at administrative discretion)
 
-    #### For Affinity
-    - Marriage certificates
-    - Civil partnership registration
-    - Cohabitation declarations with supporting evidence
+   #### For Affinity
+   - Marriage certificates
+   - Civil partnership registration
+   - Cohabitation declarations with supporting evidence
 
-    #### For Legal Guardianship
-    - Court orders establishing guardianship
-    - Foster care placement agreements
-    - Child welfare authority certifications
+   #### For Legal Guardianship
+   - Court orders establishing guardianship
+   - Foster care placement agreements
+   - Child welfare authority certifications
 
-    ### Foreign Documentation
-    - Documents issued outside Lysmark require apostille certification
-    - Non-Lysmarkn language documents require certified translation by court-appointed translator
-    - Consular authentication may be required for certain jurisdictions
+   ### Foreign Documentation
+   - Documents issued outside Lysmark require apostille certification
+   - Non-Lysmarkn language documents require certified translation by court-appointed translator
+   - Consular authentication may be required for certain jurisdictions
 
-    ## Article 7 - Disputed Relationships
+   ## Article 7 - Disputed Relationships
 
-    ### Administrative Review
-    - Relationship disputes subject to review by Family Relations Assessment Board
-    - Appeals process available within 30 days of negative determination
-    - Independent verification procedures may be implemented
+   ### Administrative Review
+   - Relationship disputes subject to review by Family Relations Assessment Board
+   - Appeals process available within 30 days of negative determination
+   - Independent verification procedures may be implemented
 
-    ### Burden of Proof
-    - Applicant bears responsibility for proving qualifying relationship
-    - Clear and convincing evidence standard applies
-    - Administrative authorities may request additional documentation
+   ### Burden of Proof
+   - Applicant bears responsibility for proving qualifying relationship
+   - Clear and convincing evidence standard applies
+   - Administrative authorities may request additional documentation
 
-    ## Article 8 - Effective Date and Transitional Provisions
+   ## Article 8 - Effective Date and Transitional Provisions
 
-    ### Implementation
-    - This regulation takes effect simultaneously with Act No. 2025/47-SA
-    - Applications submitted prior to effective date evaluated under previous standards
-    - No retroactive application to closed cases
+   ### Implementation
+   - This regulation takes effect simultaneously with Act No. 2025/47-SA
+   - Applications submitted prior to effective date evaluated under previous standards
+   - No retroactive application to closed cases
 
-    ### Review and Updates
-    - Regulation subject to periodic review every 3 years
-    - Updates published in Official Journal with 30-day implementation period
+   ### Review and Updates
+   - Regulation subject to periodic review every 3 years
+   - Updates published in Official Journal with 30-day implementation period
 
-    ## Article 9 - Interpretative Guidelines
+   ## Article 9 - Interpretative Guidelines
 
-    ### Principle of Family Unity
-    - Definitions should be interpreted to support legitimate family care needs
-    - Cultural and social diversity in family structures given appropriate consideration
-    - Best interests of care recipients considered in borderline cases
+   ### Principle of Family Unity
+   - Definitions should be interpreted to support legitimate family care needs
+   - Cultural and social diversity in family structures given appropriate consideration
+   - Best interests of care recipients considered in borderline cases
 
-    ### Legal Certainty
-    - Clear documentation requirements ensure predictable outcomes
-    - Standardized forms and procedures minimize administrative discretion
-    - Regular training for administrative personnel on relationship definitions
+   ### Legal Certainty
+   - Clear documentation requirements ensure predictable outcomes
+   - Standardized forms and procedures minimize administrative discretion
+   - Regular training for administrative personnel on relationship definitions
 
-    ---
+   ---
 
-    **ANNEX A - RELATIONSHIP VERIFICATION FLOWCHART**
+   **ANNEX A - RELATIONSHIP VERIFICATION FLOWCHART**
 
-    ```
-    RELATIONSHIP QUALIFICATION PROCESS
-    │
-    ├── CONSANGUINITY (Blood Relations)
-    │   ├── Parent → Child: QUALIFIED ✓
-    │   ├── Child → Parent: QUALIFIED ✓
-    │   └── Siblings/Other: NOT QUALIFIED ✗
-    │
-    ├── AFFINITY (Marriage/Partnership)
-    │   ├── Legal Spouse: QUALIFIED ✓
-    │   ├── Registered Partner: QUALIFIED ✓
-    │   ├── Cohabiting Partner (2+ years): QUALIFIED ✓
-    │   └── Dating/Casual: NOT QUALIFIED ✗
-    │
-    └── LEGAL GUARDIANSHIP
-        ├── Court-Appointed Guardian: QUALIFIED ✓
-        ├── Foster Parent (1+ year): QUALIFIED ✓
-        └── Informal Care: NOT QUALIFIED ✗
-    ```
+   ```
+   RELATIONSHIP QUALIFICATION PROCESS
+   │
+   ├── CONSANGUINITY (Blood Relations)
+   │   ├── Parent → Child: QUALIFIED ✓
+   │   ├── Child → Parent: QUALIFIED ✓
+   │   └── Siblings/Other: NOT QUALIFIED ✗
+   │
+   ├── AFFINITY (Marriage/Partnership)
+   │   ├── Legal Spouse: QUALIFIED ✓
+   │   ├── Registered Partner: QUALIFIED ✓
+   │   ├── Cohabiting Partner (2+ years): QUALIFIED ✓
+   │   └── Dating/Casual: NOT QUALIFIED ✗
+   │
+   └── LEGAL GUARDIANSHIP
+      ├── Court-Appointed Guardian: QUALIFIED ✓
+      ├── Foster Parent (1+ year): QUALIFIED ✓
+      └── Informal Care: NOT QUALIFIED ✗
+   ```
 
-    ---
+   ---
 
-    *This is a fictional document for demonstration purposes only.*
+   *This is a fictional document for demonstration purposes only.*
   2025_102_SD.md: |
-    ---
-    **REPUBLIC OF LYSMARK**  
-    **MINISTRY OF SOCIAL DEVELOPMENT AND HOUSING**
-    ---
+   ---
+   **REPUBLIC OF LYSMARK**  
+   **MINISTRY OF SOCIAL DEVELOPMENT AND HOUSING**
+   ---
 
-    # ACT No. 2025/102-SD  
-    ## PUBLIC HOUSING ASSISTANCE ELIGIBILITY ACT
+   # ACT No. 2025/102-SD  
+   ## PUBLIC HOUSING ASSISTANCE ELIGIBILITY ACT
 
-    **Adopted:** 18 October 2025  
-    **Effective:** 1 January 2026  
-    **Legal Basis:** Constitution of Lysmark, Article 22 (Social Rights); Housing Support Directive 2022/09 of the Union of Northern States  
-    **Official Journal Reference:** OJ SD 2025/102, p. 578-595
+   **Adopted:** 18 October 2025  
+   **Effective:** 1 January 2026  
+   **Legal Basis:** Constitution of Lysmark, Article 22 (Social Rights); Housing Support Directive 2022/09 of the Union of Northern States  
+   **Official Journal Reference:** OJ SD 2025/102, p. 578-595
 
-    ---
+   ---
 
-    ### PREAMBLE
+   ### PREAMBLE
 
-    The Parliament of the Republic of Lysmark, committed to ensuring adequate housing for all citizens while directing limited public resources to those most in need, hereby establishes transparent and equitable eligibility criteria for public housing assistance programs.
+   The Parliament of the Republic of Lysmark, committed to ensuring adequate housing for all citizens while directing limited public resources to those most in need, hereby establishes transparent and equitable eligibility criteria for public housing assistance programs.
 
-    ---
+   ---
 
-    ## Article 1 — Purpose and Scope
+   ## Article 1 — Purpose and Scope
 
-    1. This Act governs eligibility determination for all public housing assistance programs administered by the Republic of Lysmark or its regional authorities.
-    2. Assistance includes:
-       - Rental subsidies
-       - Housing vouchers
-       - Below-market public housing units
-       - First-time homebuyer grants
-    3. This Act does not affect emergency shelter provisions.
+   1. This Act governs eligibility determination for all public housing assistance programs administered by the Republic of Lysmark or its regional authorities.
+   2. Assistance includes:
+      - Rental subsidies
+      - Housing vouchers
+      - Below-market public housing units
+      - First-time homebuyer grants
+   3. This Act does not affect emergency shelter provisions.
 
-    ---
+   ---
 
-    ## Article 2 — Area Median Income (AMI) Standard
+   ## Article 2 — Area Median Income (AMI) Standard
 
-    1. Eligibility shall be assessed by reference to **Area Median Income (AMI)** as calculated annually by the Ministry of Social Development and Housing.
-    2. AMI values shall be published for each administrative region by 31 December of the preceding year.
-    3. Where regional data is unavailable, the national median income shall apply.
-    4. AMI calculations shall be based on gross household income including all sources.
+   1. Eligibility shall be assessed by reference to **Area Median Income (AMI)** as calculated annually by the Ministry of Social Development and Housing.
+   2. AMI values shall be published for each administrative region by 31 December of the preceding year.
+   3. Where regional data is unavailable, the national median income shall apply.
+   4. AMI calculations shall be based on gross household income including all sources.
 
-    ---
+   ---
 
-    ## Article 3 — Base Income Ceiling
+   ## Article 3 — Base Income Ceiling
 
-    1. To qualify for housing assistance, household income must not exceed **60% of the applicable AMI**.
-    2. This threshold is calculated as: Income Ceiling = AMI × 0.60
-    3. Households with income exceeding this ceiling are categorically ineligible.
+   1. To qualify for housing assistance, household income must not exceed **60% of the applicable AMI**.
+   2. This threshold is calculated as: Income Ceiling = AMI × 0.60
+   3. Households with income exceeding this ceiling are categorically ineligible.
 
-    ---
+   ---
 
-    ## Article 4 — Household Size Adjustment
+   ## Article 4 — Household Size Adjustment
 
-    1. For households with **more than four (4) members**, the income ceiling shall be increased by **10%**.
-    2. The adjusted threshold is calculated as: 
-       - Adjusted Ceiling = (AMI × 0.60) × 1.10
-       - Equivalently: Adjusted Ceiling = AMI × 0.66
-    3. This adjustment recognizes the increased financial burden of larger households.
-    4. Household members include all persons residing in the dwelling, regardless of relationship.
+   1. For households with **more than four (4) members**, the income ceiling shall be increased by **10%**.
+   2. The adjusted threshold is calculated as: 
+      - Adjusted Ceiling = (AMI × 0.60) × 1.10
+      - Equivalently: Adjusted Ceiling = AMI × 0.66
+   3. This adjustment recognizes the increased financial burden of larger households.
+   4. Household members include all persons residing in the dwelling, regardless of relationship.
 
-    ---
+   ---
 
-    ## Article 5 — Subsidy Exclusivity Requirement
+   ## Article 5 — Subsidy Exclusivity Requirement
 
-    1. Applicants already receiving **any other housing subsidy** from federal, regional, or municipal sources are **ineligible** for assistance under this Act.
-    2. Other subsidies include:
-       - Rental assistance from other programs
-       - Mortgage interest subsidies
-       - Property tax relief specifically tied to housing need
-       - Employer-provided housing benefits exceeding market rates
-    3. General welfare benefits and child allowances do not constitute housing subsidies for this purpose.
+   1. Applicants already receiving **any other housing subsidy** from federal, regional, or municipal sources are **ineligible** for assistance under this Act.
+   2. Other subsidies include:
+      - Rental assistance from other programs
+      - Mortgage interest subsidies
+      - Property tax relief specifically tied to housing need
+      - Employer-provided housing benefits exceeding market rates
+   3. General welfare benefits and child allowances do not constitute housing subsidies for this purpose.
 
-    ---
+   ---
 
-    ## Article 6 — Eligibility Determination Process
+   ## Article 6 — Eligibility Determination Process
 
-    Applications shall be evaluated using this three-stage test:
+   Applications shall be evaluated using this three-stage test:
 
-    **Stage 1 - Income Test:**
-    - Household size ≤ 4: Income must be ≤ (AMI × 0.60)
-    - Household size > 4: Income must be ≤ (AMI × 0.66)
+   **Stage 1 - Income Test:**
+   - Household size ≤ 4: Income must be ≤ (AMI × 0.60)
+   - Household size > 4: Income must be ≤ (AMI × 0.66)
 
-    **Stage 2 - Household Composition:**
-    - Verify actual number of household members
-    - Apply appropriate income ceiling
+   **Stage 2 - Household Composition:**
+   - Verify actual number of household members
+   - Apply appropriate income ceiling
 
-    **Stage 3 - Subsidy Exclusivity:**
-    - Confirm absence of other housing subsidies
-    - Verify supporting documentation
+   **Stage 3 - Subsidy Exclusivity:**
+   - Confirm absence of other housing subsidies
+   - Verify supporting documentation
 
-    Applicants must satisfy all three stages to be deemed eligible.
+   Applicants must satisfy all three stages to be deemed eligible.
 
-    ---
+   ---
 
-    ## Article 7 — Documentation Requirements
+   ## Article 7 — Documentation Requirements
 
-    1. Applicants must provide:
-       - Proof of gross household income (tax returns, pay stubs, benefit statements)
-       - Proof of household composition (identification documents, lease agreements)
-       - Declaration of other subsidies received
-       - Certification that information is accurate and complete
-    2. False statements constitute fraud and result in disqualification and recovery of benefits.
+   1. Applicants must provide:
+      - Proof of gross household income (tax returns, pay stubs, benefit statements)
+      - Proof of household composition (identification documents, lease agreements)
+      - Declaration of other subsidies received
+      - Certification that information is accurate and complete
+   2. False statements constitute fraud and result in disqualification and recovery of benefits.
 
-    ---
+   ---
 
-    ## Article 8 — Annual Recertification
+   ## Article 8 — Annual Recertification
 
-    1. Recipients must recertify eligibility annually by submitting updated documentation.
-    2. Households whose circumstances change during the benefit period must report changes within 30 days.
-    3. Failure to recertify results in automatic suspension of benefits.
+   1. Recipients must recertify eligibility annually by submitting updated documentation.
+   2. Households whose circumstances change during the benefit period must report changes within 30 days.
+   3. Failure to recertify results in automatic suspension of benefits.
 
-    ---
+   ---
 
-    ## Article 9 — Appeals
+   ## Article 9 — Appeals
 
-    1. Denied applicants may appeal within 30 days to the Regional Housing Appeals Board.
-    2. Appeals must be based on:
-       - Factual errors in the application assessment
-       - Incorrect application of eligibility criteria
-       - Procedural irregularities
-    3. Appeals Boards shall issue written decisions within 60 days.
+   1. Denied applicants may appeal within 30 days to the Regional Housing Appeals Board.
+   2. Appeals must be based on:
+      - Factual errors in the application assessment
+      - Incorrect application of eligibility criteria
+      - Procedural irregularities
+   3. Appeals Boards shall issue written decisions within 60 days.
 
-    ---
+   ---
 
-    ## Article 10 — Enforcement and Compliance
+   ## Article 10 — Enforcement and Compliance
 
-    1. The Ministry of Social Development and Housing shall conduct random audits of eligibility determinations.
-    2. Administrative bodies making eligibility errors face corrective action requirements.
-    3. Systematic non-compliance may result in loss of program funding.
+   1. The Ministry of Social Development and Housing shall conduct random audits of eligibility determinations.
+   2. Administrative bodies making eligibility errors face corrective action requirements.
+   3. Systematic non-compliance may result in loss of program funding.
 
-    ---
+   ---
 
-    ## Article 11 — Privacy and Data Protection
+   ## Article 11 — Privacy and Data Protection
 
-    1. All applicant information shall be treated as confidential and protected under the Data Protection Act.
-    2. Information may only be shared with other agencies for verification purposes with applicant consent.
-    3. Unauthorized disclosure constitutes a criminal offense.
+   1. All applicant information shall be treated as confidential and protected under the Data Protection Act.
+   2. Information may only be shared with other agencies for verification purposes with applicant consent.
+   3. Unauthorized disclosure constitutes a criminal offense.
 
-    ---
+   ---
 
-    ## Article 12 — Implementation
+   ## Article 12 — Implementation
 
-    1. The Ministry of Social Development and Housing is tasked with issuing regulations necessary for the practical enforcement of this Act.
-    2. This Act shall enter into force on **1 January 2026** and remain valid until amended or repealed by Parliament.
+   1. The Ministry of Social Development and Housing is tasked with issuing regulations necessary for the practical enforcement of this Act.
+   2. This Act shall enter into force on **1 January 2026** and remain valid until amended or repealed by Parliament.
 
-    ---
+   ---
 
-    **Adopted by the Parliament of the Republic of Lysmark**  
-    **Promulgated by the President of the Republic of Lysmark**
+   **Adopted by the Parliament of the Republic of Lysmark**  
+   **Promulgated by the President of the Republic of Lysmark**
   2025_73_JU.md: |
-    ---
-    **REPUBLIC OF LYSMARK**  
-    **MINISTRY OF JUSTICE**
-    ---
+   ---
+   **REPUBLIC OF LYSMARK**  
+   **MINISTRY OF JUSTICE**
+   ---
 
-    # ACT No. 2025/73-JU  
-    ## COMMERCIAL OBLIGATIONS AND LIQUIDATED DAMAGES ACT
+   # ACT No. 2025/73-JU  
+   ## COMMERCIAL OBLIGATIONS AND LIQUIDATED DAMAGES ACT
 
-    **Adopted:** 15 August 2025  
-    **Effective:** 1 October 2025  
-    **Legal Basis:** Constitution of Lysmark, Article 28 (Contract Law); Commercial Harmonization Directive 2019/33 of the Union of Northern States  
-    **Official Journal Reference:** OJ JU 2025/73, p. 201-215
+   **Adopted:** 15 August 2025  
+   **Effective:** 1 October 2025  
+   **Legal Basis:** Constitution of Lysmark, Article 28 (Contract Law); Commercial Harmonization Directive 2019/33 of the Union of Northern States  
+   **Official Journal Reference:** OJ JU 2025/73, p. 201-215
 
-    ---
+   ---
 
-    ### PREAMBLE
+   ### PREAMBLE
 
-    The Parliament of the Republic of Lysmark, recognizing the necessity of predictable remedies for breach of commercial obligations and the importance of balancing creditor protection with debtor fairness, hereby enacts rules governing liquidated damages for delayed performance.
+   The Parliament of the Republic of Lysmark, recognizing the necessity of predictable remedies for breach of commercial obligations and the importance of balancing creditor protection with debtor fairness, hereby enacts rules governing liquidated damages for delayed performance.
 
-    ---
+   ---
 
-    ## Article 1 — Purpose and Scope
+   ## Article 1 — Purpose and Scope
 
-    1. This Act regulates the calculation and enforcement of liquidated damages arising from delayed performance of commercial obligations.
-    2. It applies to all commercial contracts governed by Lysmark law where parties have agreed to time-sensitive performance obligations.
-    3. Consumer contracts remain subject to the Consumer Protection Act.
+   1. This Act regulates the calculation and enforcement of liquidated damages arising from delayed performance of commercial obligations.
+   2. It applies to all commercial contracts governed by Lysmark law where parties have agreed to time-sensitive performance obligations.
+   3. Consumer contracts remain subject to the Consumer Protection Act.
 
-    ---
+   ---
 
-    ## Article 2 — Daily Accrual of Penalties
+   ## Article 2 — Daily Accrual of Penalties
 
-    1. Where a contract specifies liquidated damages for delay, penalties shall accrue on a **daily basis** from the first day following the agreed deadline.
-    2. The daily rate shall be as stipulated in the contract or, absent agreement, at the statutory default rate established by the Ministry of Justice.
-    3. Accrual continues until performance is completed or the contract is terminated.
+   1. Where a contract specifies liquidated damages for delay, penalties shall accrue on a **daily basis** from the first day following the agreed deadline.
+   2. The daily rate shall be as stipulated in the contract or, absent agreement, at the statutory default rate established by the Ministry of Justice.
+   3. Accrual continues until performance is completed or the contract is terminated.
 
-    ---
+   ---
 
-    ## Article 3 — Maximum Cap Limitation
+   ## Article 3 — Maximum Cap Limitation
 
-    1. No liquidated damages shall exceed the **contractual maximum cap** where such a cap has been agreed between parties.
-    2. Once the accumulated daily penalties reach the cap, no further penalty accrual shall occur, regardless of continued delay.
-    3. The cap limitation protects against disproportionate penalties while maintaining incentive for timely performance.
+   1. No liquidated damages shall exceed the **contractual maximum cap** where such a cap has been agreed between parties.
+   2. Once the accumulated daily penalties reach the cap, no further penalty accrual shall occur, regardless of continued delay.
+   3. The cap limitation protects against disproportionate penalties while maintaining incentive for timely performance.
 
-    ---
+   ---
 
-    ## Article 4 — Interest on Penalty Obligations
+   ## Article 4 — Interest on Penalty Obligations
 
-    1. Once the penalty amount is determined (whether capped or uncapped), **statutory interest** shall accrue on that penalty amount.
-    2. Interest applies from the date the penalty becomes due and payable until actual payment.
-    3. The interest rate shall be as specified in the contract or, absent agreement, at the statutory commercial rate.
+   1. Once the penalty amount is determined (whether capped or uncapped), **statutory interest** shall accrue on that penalty amount.
+   2. Interest applies from the date the penalty becomes due and payable until actual payment.
+   3. The interest rate shall be as specified in the contract or, absent agreement, at the statutory commercial rate.
 
-    ---
+   ---
 
-    ## Article 5 — Calculation Methodology
+   ## Article 5 — Calculation Methodology
 
-    The total amount owed shall be calculated as follows:
+   The total amount owed shall be calculated as follows:
 
-    1. **Step 1:** Determine days of delay from deadline to performance/termination date.
-    2. **Step 2:** Calculate base penalty = days × daily rate.
-    3. **Step 3:** Apply cap limitation if base penalty exceeds contractual maximum.
-    4. **Step 4:** Calculate interest on the final penalty amount (post-cap if applicable).
-    5. **Step 5:** Total obligation = capped/uncapped penalty + accrued interest.
+   1. **Step 1:** Determine days of delay from deadline to performance/termination date.
+   2. **Step 2:** Calculate base penalty = days × daily rate.
+   3. **Step 3:** Apply cap limitation if base penalty exceeds contractual maximum.
+   4. **Step 4:** Calculate interest on the final penalty amount (post-cap if applicable).
+   5. **Step 5:** Total obligation = capped/uncapped penalty + accrued interest.
 
-    ---
+   ---
 
-    ## Article 6 — Enforcement and Collection
+   ## Article 6 — Enforcement and Collection
 
-    1. Creditors may enforce liquidated damages through standard debt collection procedures.
-    2. Courts shall not reduce agreed liquidated damages except where they constitute an unlawful penalty under Article 29 of the Constitution.
-    3. The Ministry of Justice shall maintain public guidance on reasonable penalty rates by industry sector.
+   1. Creditors may enforce liquidated damages through standard debt collection procedures.
+   2. Courts shall not reduce agreed liquidated damages except where they constitute an unlawful penalty under Article 29 of the Constitution.
+   3. The Ministry of Justice shall maintain public guidance on reasonable penalty rates by industry sector.
 
-    ---
+   ---
 
-    ## Article 7 — Reporting and Transparency
+   ## Article 7 — Reporting and Transparency
 
-    1. Commercial entities entering into contracts with liquidated damages clauses must ensure terms are clearly documented.
-    2. Penalty calculations must be provided to obligors in writing within 15 days of breach.
-    3. Disputes regarding calculation methodology may be submitted to commercial arbitration.
+   1. Commercial entities entering into contracts with liquidated damages clauses must ensure terms are clearly documented.
+   2. Penalty calculations must be provided to obligors in writing within 15 days of breach.
+   3. Disputes regarding calculation methodology may be submitted to commercial arbitration.
 
-    ---
+   ---
 
-    ## Article 8 — Implementation
+   ## Article 8 — Implementation
 
-    1. The Ministry of Justice is tasked with issuing regulations necessary for the practical enforcement of this Act.
-    2. This Act shall enter into force on **1 October 2025** and remain valid until amended or repealed by Parliament.
+   1. The Ministry of Justice is tasked with issuing regulations necessary for the practical enforcement of this Act.
+   2. This Act shall enter into force on **1 October 2025** and remain valid until amended or repealed by Parliament.
 
-    ---
+   ---
 
-    **Adopted by the Parliament of the Republic of Lysmark**  
-    **Promulgated by the President of the Republic of Lysmark**
+   **Adopted by the Parliament of the Republic of Lysmark**  
+   **Promulgated by the President of the Republic of Lysmark**
   2025_88_GD.md: |
-    ---
-    **REPUBLIC OF LYSMARK**  
-    **MINISTRY OF GOVERNANCE AND DEMOCRATIC AFFAIRS**
-    ---
+   ---
+   **REPUBLIC OF LYSMARK**  
+   **MINISTRY OF GOVERNANCE AND DEMOCRATIC AFFAIRS**
+   ---
 
-    # ACT No. 2025/88-GD  
-    ## ORGANIZATIONAL VOTING AND QUORUM ACT
+   # ACT No. 2025/88-GD  
+   ## ORGANIZATIONAL VOTING AND QUORUM ACT
 
-    **Adopted:** 22 September 2025  
-    **Effective:** 1 November 2025  
-    **Legal Basis:** Constitution of Lysmark, Article 19 (Democratic Participation); Corporate Governance Directive 2020/15 of the Union of Northern States  
-    **Official Journal Reference:** OJ GD 2025/88, p. 312-328
+   **Adopted:** 22 September 2025  
+   **Effective:** 1 November 2025  
+   **Legal Basis:** Constitution of Lysmark, Article 19 (Democratic Participation); Corporate Governance Directive 2020/15 of the Union of Northern States  
+   **Official Journal Reference:** OJ GD 2025/88, p. 312-328
 
-    ---
+   ---
 
-    ### PREAMBLE
+   ### PREAMBLE
 
-    The Parliament of the Republic of Lysmark, affirming the democratic principles enshrined in the Constitution and recognizing the need for legitimate decision-making in corporate and organizational contexts, hereby establishes mandatory standards for voting procedures, quorum requirements, and approval thresholds.
+   The Parliament of the Republic of Lysmark, affirming the democratic principles enshrined in the Constitution and recognizing the need for legitimate decision-making in corporate and organizational contexts, hereby establishes mandatory standards for voting procedures, quorum requirements, and approval thresholds.
 
-    ---
+   ---
 
-    ## Article 1 — Purpose and Scope
+   ## Article 1 — Purpose and Scope
 
-    1. This Act establishes minimum voting standards for all corporate bodies, cooperatives, associations, and organizations registered in the Republic of Lysmark.
-    2. It applies to shareholder meetings, member assemblies, board decisions, and other collective decision-making bodies.
-    3. Public elections remain governed by the Electoral Code.
+   1. This Act establishes minimum voting standards for all corporate bodies, cooperatives, associations, and organizations registered in the Republic of Lysmark.
+   2. It applies to shareholder meetings, member assemblies, board decisions, and other collective decision-making bodies.
+   3. Public elections remain governed by the Electoral Code.
 
-    ---
+   ---
 
-    ## Article 2 — Turnout and Quorum Requirements
+   ## Article 2 — Turnout and Quorum Requirements
 
-    1. No vote shall be considered valid unless a minimum **turnout of 60% of eligible voters** is achieved.
-    2. Turnout is calculated as: (number of voters participating) ÷ (total eligible voters) × 100%.
-    3. Organizations may establish higher turnout requirements in their constitutional documents but may not set requirements below this statutory minimum.
-    4. Failed quorum requires adjournment and renotification to members.
+   1. No vote shall be considered valid unless a minimum **turnout of 60% of eligible voters** is achieved.
+   2. Turnout is calculated as: (number of voters participating) ÷ (total eligible voters) × 100%.
+   3. Organizations may establish higher turnout requirements in their constitutional documents but may not set requirements below this statutory minimum.
+   4. Failed quorum requires adjournment and renotification to members.
 
-    ---
+   ---
 
-    ## Article 3 — Approval Thresholds for General Resolutions
+   ## Article 3 — Approval Thresholds for General Resolutions
 
-    1. **Ordinary resolutions** require approval by a **simple majority** of votes cast.
-    2. Simple majority means: yes votes > 50% of total votes cast.
-    3. This threshold applies to:
-       - Routine operational decisions
-       - Annual budget approvals
-       - Appointment of officers (unless otherwise specified)
-       - Any matter not classified as requiring special approval
+   1. **Ordinary resolutions** require approval by a **simple majority** of votes cast.
+   2. Simple majority means: yes votes > 50% of total votes cast.
+   3. This threshold applies to:
+      - Routine operational decisions
+      - Annual budget approvals
+      - Appointment of officers (unless otherwise specified)
+      - Any matter not classified as requiring special approval
 
-    ---
+   ---
 
-    ## Article 4 — Approval Thresholds for Constitutional Amendments
+   ## Article 4 — Approval Thresholds for Constitutional Amendments
 
-    1. **Amendments to constitutional documents** require approval by **at least two-thirds (66.7%)** of votes cast.
-    2. Constitutional documents include:
-       - Articles of association
-       - Corporate bylaws
-       - Founding charters
-       - Any document establishing fundamental organizational rules
-    3. This heightened threshold ensures stability of foundational governance structures.
+   1. **Amendments to constitutional documents** require approval by **at least two-thirds (66.7%)** of votes cast.
+   2. Constitutional documents include:
+      - Articles of association
+      - Corporate bylaws
+      - Founding charters
+      - Any document establishing fundamental organizational rules
+   3. This heightened threshold ensures stability of foundational governance structures.
 
-    ---
+   ---
 
-    ## Article 5 — Validation Procedure
+   ## Article 5 — Validation Procedure
 
-    Organizations must validate voting outcomes according to this two-stage test:
+   Organizations must validate voting outcomes according to this two-stage test:
 
-    1. **Stage 1 - Turnout Test:** Verify that turnout ≥ 60% of eligible voters.
-    2. **Stage 2 - Approval Test:** 
-       - For general resolutions: yes votes > 50% of votes cast
-       - For amendments: yes votes ≥ 66.7% of votes cast
-    3. A proposal fails if either stage is not satisfied.
+   1. **Stage 1 - Turnout Test:** Verify that turnout ≥ 60% of eligible voters.
+   2. **Stage 2 - Approval Test:** 
+      - For general resolutions: yes votes > 50% of votes cast
+      - For amendments: yes votes ≥ 66.7% of votes cast
+   3. A proposal fails if either stage is not satisfied.
 
-    ---
+   ---
 
-    ## Article 6 — Documentation and Reporting
+   ## Article 6 — Documentation and Reporting
 
-    1. Organizations must maintain records showing:
-       - Total eligible voters
-       - Actual turnout (number and percentage)
-       - Yes votes, no votes, and abstentions
-       - Calculation demonstrating compliance with thresholds
-    2. These records must be available for member inspection and regulatory audit.
+   1. Organizations must maintain records showing:
+      - Total eligible voters
+      - Actual turnout (number and percentage)
+      - Yes votes, no votes, and abstentions
+      - Calculation demonstrating compliance with thresholds
+   2. These records must be available for member inspection and regulatory audit.
 
-    ---
+   ---
 
-    ## Article 7 — Enforcement
+   ## Article 7 — Enforcement
 
-    1. Decisions made in violation of this Act are voidable and may be challenged within 90 days.
-    2. The Ministry of Governance and Democratic Affairs shall investigate complaints of non-compliance.
-    3. Persistent violators may face suspension of registration or other administrative penalties.
+   1. Decisions made in violation of this Act are voidable and may be challenged within 90 days.
+   2. The Ministry of Governance and Democratic Affairs shall investigate complaints of non-compliance.
+   3. Persistent violators may face suspension of registration or other administrative penalties.
 
-    ---
+   ---
 
-    ## Article 8 — Appeals
+   ## Article 8 — Appeals
 
-    1. Members may contest voting procedures or calculations within 30 days of the vote.
-    2. Appeals shall be submitted to the Directorate of Corporate Governance.
-    3. Final administrative decisions may be appealed to the Administrative Chamber of the Supreme Court of Lysmark.
+   1. Members may contest voting procedures or calculations within 30 days of the vote.
+   2. Appeals shall be submitted to the Directorate of Corporate Governance.
+   3. Final administrative decisions may be appealed to the Administrative Chamber of the Supreme Court of Lysmark.
 
-    ---
+   ---
 
-    ## Article 9 — Implementation
+   ## Article 9 — Implementation
 
-    1. The Ministry of Governance and Democratic Affairs is tasked with issuing regulations necessary for the practical enforcement of this Act.
-    2. This Act shall enter into force on **1 November 2025** and remain valid until amended or repealed by Parliament.
+   1. The Ministry of Governance and Democratic Affairs is tasked with issuing regulations necessary for the practical enforcement of this Act.
+   2. This Act shall enter into force on **1 November 2025** and remain valid until amended or repealed by Parliament.
 
-    ---
+   ---
 
-    **Adopted by the Parliament of the Republic of Lysmark**  
-    **Promulgated by the President of the Republic of Lysmark**
+   **Adopted by the Parliament of the Republic of Lysmark**  
+   **Promulgated by the President of the Republic of Lysmark**
   2025_94_FC.md: |
-    ---
-    **REPUBLIC OF LYSMARK**  
-    **MINISTRY OF FINANCE AND CREDIT MARKETS**
-    ---
+   ---
+   **REPUBLIC OF LYSMARK**  
+   **MINISTRY OF FINANCE AND CREDIT MARKETS**
+   ---
 
-    # ACT No. 2025/94-FC  
-    ## STRUCTURED FINANCE AND CREDITOR PRIORITY ACT
+   # ACT No. 2025/94-FC  
+   ## STRUCTURED FINANCE AND CREDITOR PRIORITY ACT
 
-    **Adopted:** 5 October 2025  
-    **Effective:** 1 January 2026  
-    **Legal Basis:** Constitution of Lysmark, Article 31 (Property and Contract Rights); Financial Instruments Directive 2021/28 of the Union of Northern States  
-    **Official Journal Reference:** OJ FC 2025/94, p. 445-462
+   **Adopted:** 5 October 2025  
+   **Effective:** 1 January 2026  
+   **Legal Basis:** Constitution of Lysmark, Article 31 (Property and Contract Rights); Financial Instruments Directive 2021/28 of the Union of Northern States  
+   **Official Journal Reference:** OJ FC 2025/94, p. 445-462
 
-    ---
+   ---
 
-    ### PREAMBLE
+   ### PREAMBLE
 
-    The Parliament of the Republic of Lysmark, recognizing the importance of predictable priority rules in structured financing arrangements, and seeking to promote efficient capital markets while protecting creditor rights, hereby establishes mandatory waterfall distribution rules for multi-tier debt structures.
+   The Parliament of the Republic of Lysmark, recognizing the importance of predictable priority rules in structured financing arrangements, and seeking to promote efficient capital markets while protecting creditor rights, hereby establishes mandatory waterfall distribution rules for multi-tier debt structures.
 
-    ---
+   ---
 
-    ## Article 1 — Purpose and Scope
+   ## Article 1 — Purpose and Scope
 
-    1. This Act governs the distribution of available cash or assets among multiple classes of creditors in structured financing arrangements.
-    2. It applies to:
-       - Syndicated loans with multiple tranches
-       - Secured debt with senior/junior structures
-       - Corporate insolvency distributions
-       - Project finance repayment waterfalls
-    3. This Act does not affect equal-ranking creditors, who share pro rata.
+   1. This Act governs the distribution of available cash or assets among multiple classes of creditors in structured financing arrangements.
+   2. It applies to:
+      - Syndicated loans with multiple tranches
+      - Secured debt with senior/junior structures
+      - Corporate insolvency distributions
+      - Project finance repayment waterfalls
+   3. This Act does not affect equal-ranking creditors, who share pro rata.
 
-    ---
+   ---
 
-    ## Article 2 — Hierarchy of Claims
+   ## Article 2 — Hierarchy of Claims
 
-    1. Claims shall be satisfied in the following strict order of priority:
-       - **Tier 1: Senior Debt** — highest priority
-       - **Tier 2: Junior (Subordinated) Debt** — intermediate priority
-       - **Tier 3: Equity** — residual claimants
-    2. No distribution to a lower tier may occur until the immediately higher tier is fully satisfied.
-    3. This hierarchy is mandatory and may not be contractually reversed.
+   1. Claims shall be satisfied in the following strict order of priority:
+      - **Tier 1: Senior Debt** — highest priority
+      - **Tier 2: Junior (Subordinated) Debt** — intermediate priority
+      - **Tier 3: Equity** — residual claimants
+   2. No distribution to a lower tier may occur until the immediately higher tier is fully satisfied.
+   3. This hierarchy is mandatory and may not be contractually reversed.
 
-    ---
+   ---
 
-    ## Article 3 — Senior Debt Priority
+   ## Article 3 — Senior Debt Priority
 
-    1. **Senior creditors** must receive 100% of their outstanding claims before any distribution to junior creditors or equity holders.
-    2. If available cash is insufficient to satisfy senior debt in full:
-       - All available cash goes entirely to senior creditors
-       - Junior creditors receive zero
-       - Equity holders receive zero
-    3. Senior debt includes principal, accrued interest, and any contractually agreed fees.
+   1. **Senior creditors** must receive 100% of their outstanding claims before any distribution to junior creditors or equity holders.
+   2. If available cash is insufficient to satisfy senior debt in full:
+      - All available cash goes entirely to senior creditors
+      - Junior creditors receive zero
+      - Equity holders receive zero
+   3. Senior debt includes principal, accrued interest, and any contractually agreed fees.
 
-    ---
+   ---
 
-    ## Article 4 — Junior Debt Allocation
+   ## Article 4 — Junior Debt Allocation
 
-    1. **Junior creditors** may only receive payment from cash remaining after full satisfaction of senior claims.
-    2. If remaining cash exceeds junior debt obligations:
-       - Junior creditors are paid in full
-       - Excess proceeds to equity
-    3. If remaining cash is less than junior debt obligations:
-       - Junior creditors receive the entire remaining balance
-       - Equity receives zero
+   1. **Junior creditors** may only receive payment from cash remaining after full satisfaction of senior claims.
+   2. If remaining cash exceeds junior debt obligations:
+      - Junior creditors are paid in full
+      - Excess proceeds to equity
+   3. If remaining cash is less than junior debt obligations:
+      - Junior creditors receive the entire remaining balance
+      - Equity receives zero
 
-    ---
+   ---
 
-    ## Article 5 — Residual Equity Distribution
+   ## Article 5 — Residual Equity Distribution
 
-    1. **Equity holders** may only receive distributions from cash remaining after full payment of both senior and junior debt.
-    2. Equity distributions are discretionary and subject to organizational governance rules.
-    3. Residual amounts belong to equity holders proportionate to their ownership stakes.
+   1. **Equity holders** may only receive distributions from cash remaining after full payment of both senior and junior debt.
+   2. Equity distributions are discretionary and subject to organizational governance rules.
+   3. Residual amounts belong to equity holders proportionate to their ownership stakes.
 
-    ---
+   ---
 
-    ## Article 6 — Calculation Methodology
+   ## Article 6 — Calculation Methodology
 
-    Distribution shall be calculated using this sequential process:
+   Distribution shall be calculated using this sequential process:
 
-    1. **Step 1:** Identify total cash available for distribution
-    2. **Step 2:** Allocate to senior debt = MIN(cash available, senior debt outstanding)
-    3. **Step 3:** Calculate remaining cash = cash available - senior allocation
-    4. **Step 4:** Allocate to junior debt = MIN(remaining cash, junior debt outstanding)
-    5. **Step 5:** Calculate final remainder = remaining cash - junior allocation
-    6. **Step 6:** Allocate remainder to equity
+   1. **Step 1:** Identify total cash available for distribution
+   2. **Step 2:** Allocate to senior debt = MIN(cash available, senior debt outstanding)
+   3. **Step 3:** Calculate remaining cash = cash available - senior allocation
+   4. **Step 4:** Allocate to junior debt = MIN(remaining cash, junior debt outstanding)
+   5. **Step 5:** Calculate final remainder = remaining cash - junior allocation
+   6. **Step 6:** Allocate remainder to equity
 
-    ---
+   ---
 
-    ## Article 7 — Enforcement and Penalties
+   ## Article 7 — Enforcement and Penalties
 
-    1. Distributions made in violation of priority rules constitute breach of fiduciary duty.
-    2. Creditors improperly subordinated may void the distribution and seek full restitution.
-    3. Officers or directors authorizing non-compliant distributions face personal liability.
+   1. Distributions made in violation of priority rules constitute breach of fiduciary duty.
+   2. Creditors improperly subordinated may void the distribution and seek full restitution.
+   3. Officers or directors authorizing non-compliant distributions face personal liability.
 
-    ---
+   ---
 
-    ## Article 8 — Reporting Requirements
+   ## Article 8 — Reporting Requirements
 
-    1. All structured finance arrangements must maintain records documenting:
-       - Outstanding amounts by creditor tier
-       - Cash available for distribution
-       - Actual allocations made
-       - Calculations demonstrating priority compliance
-    2. The Ministry of Finance and Credit Markets may audit compliance.
+   1. All structured finance arrangements must maintain records documenting:
+      - Outstanding amounts by creditor tier
+      - Cash available for distribution
+      - Actual allocations made
+      - Calculations demonstrating priority compliance
+   2. The Ministry of Finance and Credit Markets may audit compliance.
 
-    ---
+   ---
 
-    ## Article 9 — Exceptions and Special Circumstances
+   ## Article 9 — Exceptions and Special Circumstances
 
-    1. Court-supervised insolvency proceedings may modify priority in accordance with Insolvency Act provisions.
-    2. Secured creditors retain their statutory rights to collateral realization.
-    3. This Act does not affect tax liens or other statutory priorities established by law.
+   1. Court-supervised insolvency proceedings may modify priority in accordance with Insolvency Act provisions.
+   2. Secured creditors retain their statutory rights to collateral realization.
+   3. This Act does not affect tax liens or other statutory priorities established by law.
 
-    ---
+   ---
 
-    ## Article 10 — Implementation
+   ## Article 10 — Implementation
 
-    1. The Ministry of Finance and Credit Markets is tasked with issuing regulations necessary for the practical enforcement of this Act.
-    2. This Act shall enter into force on **1 January 2026** and remain valid until amended or repealed by Parliament.
+   1. The Ministry of Finance and Credit Markets is tasked with issuing regulations necessary for the practical enforcement of this Act.
+   2. This Act shall enter into force on **1 January 2026** and remain valid until amended or repealed by Parliament.
 
-    ---
+   ---
 
-    **Adopted by the Parliament of the Republic of Lysmark**  
-    **Promulgated by the President of the Republic of Lysmark**
+   **Adopted by the Parliament of the Republic of Lysmark**  
+   **Promulgated by the President of the Republic of Lysmark**
