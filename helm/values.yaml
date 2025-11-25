@@ -1,12 +1,10 @@
-vllmImage: quay.io/modh/vllm:rhoai-2.23-cuda
-
 # Application configuration
-app: eligibility-lsd
-namespace: eligibility-mcp-llamastack
-partOf: eligibility-mcp-llamastack
+app: llama-stack-demo
+namespace: llama-stack-demo
+partOf: llama-stack-demo
 
-# lsdName: rh-dev
-lsdImage: registry.redhat.io/rhoai/odh-llama-stack-core-rhel9:v2.23
+lsdName: rh-dev
+# lsdImage: registry.redhat.io/rhoai/odh-llama-stack-core-rhel9:v2.23
 lsdBaseDir: /opt/app-root/src
 lsdPort: 8321
 
@@ -15,9 +13,8 @@ lsdEmbeddingDimension: 768
 lsdEmbeddingModelProvider: sentence-transformers
 lsdChunkSizeInTokens: 256
 
-lsdPlaygroundImage: quay.io/rh-aiservices-bu/llama-stack-playground:0.2.11
+llamaStackDemoCoreImage: quay.io/atarazana/llama-stack-demo-core:0.1.1
 
-loaderImage: quay.io/atarazana/rag-loader:0.1.1
 loaderDelay: 10
 loaderJobRetries: 30
 
@@ -27,6 +24,40 @@ fmsOchestratorUrl: http://localhost:8080
 docsFolder: /data/docs
 
 models:
+  # - name: granite-3-3-8b
+  #   displayName: Granite 3.3 8B
+  #   id: ibm-granite/granite-3.3-8b-instruct
+  #   image: quay.io/redhat-ai-services/modelcar-catalog:granite-3.3-8b-instruct
+  #   maxModelLen: '15000'
+  #   maxTokens: '4096' # llama stack vllm max token, default is 4096
+  #   tlsVerify: false
+  #   externalAccess: true
+  #   runtime:
+  #     templateName: vllm-serving-template
+  #     templateDisplayName: vLLM Serving Template
+  #     version: v0.9.1.0
+  #     # image: quay.io/modh/vllm:rhoai-2.25-cuda
+  #     image: registry.redhat.io/rhaiis/vllm-cuda-rhel9@sha256:ad756c01ec99a99cc7d93401c41b8d92ca96fb1ab7c5262919d818f2be4f3768
+  #     resources:
+  #       limits:
+  #         cpu: '8'
+  #         memory: 24Gi
+  #       requests:
+  #         cpu: '6'
+  #         memory: 24Gi
+  #   accelerator:
+  #     type: nvidia.com/gpu
+  #     max: '1'
+  #     min: '1'
+  #     nodeSelector:
+  #       group: 'llama-stack-demo'
+  #     # productName: NVIDIA-A10G
+  #   args:
+  #     - '--enable-auto-tool-choice'
+  #     - '--tool-call-parser'
+  #     - 'granite'
+  #     - '--chat-template'
+  #     - '/app/data/template/tool_chat_template_granite.jinja'
   - name: llama-3-1-8b-w4a16
     displayName: Llama 3.1 8B
     id: RedHatAI/Meta-Llama-3.1-8B-Instruct-quantized.w4a16
@@ -36,10 +67,10 @@ models:
     tlsVerify: false
     externalAccess: true
     runtime:
-      templateName: vllm-serving-template
-      templateDisplayName: vLLM Serving Template
+      templateName: vllm-cuda-runtime
+      templateDisplayName: vLLM NVIDIA GPU ServingRuntime for KServe
       version: v0.9.1.0
-      # image: quay.io/modh/vllm:rhoai-2.23-cuda
+      # image: quay.io/modh/vllm:rhoai-2.25-cuda
       image: registry.redhat.io/rhaiis/vllm-cuda-rhel9@sha256:ad756c01ec99a99cc7d93401c41b8d92ca96fb1ab7c5262919d818f2be4f3768
       resources:
         limits:
@@ -52,6 +83,8 @@ models:
       type: nvidia.com/gpu
       max: '1'
       min: '1'
+      nodeSelector:
+        group: 'llama-stack-demo'
       # productName: NVIDIA-A10G-SHARED
       # productName: T4-SHARED
     env:
@@ -62,7 +95,7 @@ models:
       - --tool-call-parser
       - llama3_json
       - --chat-template
-      - /app/data/template/tool_chat_template_llama3.1_json.jinja
+      - /opt/app-root/template/tool_chat_template_llama3.1_json.jinja
 
 mcpServers:
   - id: eligibility-engine
@@ -72,7 +105,7 @@ mcpServers:
       uri: https://github.com/alpha-hack-program/eligibility-engine-mcp-rs.git
       ref: main
       path: .
-    image: quay.io/atarazana/eligibility-engine-mcp-rs:1.1.4
+    image: quay.io/atarazana/eligibility-engine-mcp-rs:1.2.1
     mcp_transport: "sse"
     protocol: "http"
     host: eligibility-engine
@@ -85,7 +118,7 @@ mcpServers:
         memory: 128Mi
       requests:
         cpu: 250m
-        memory: 128Mi
+        memory: 64Mi
     env:
       - name: RUST_LOG
         value: "debug"
@@ -96,7 +129,7 @@ mcpServers:
       uri: https://github.com/alpha-hack-program/compatibility-engine-mcp-rs.git
       ref: main
       path: .
-    image: quay.io/atarazana/compatibility-engine-mcp-rs:1.2.0
+    image: quay.io/atarazana/compatibility-engine-mcp-rs:1.3.3
     mcp_transport: "sse"
     protocol: "http"
     host: compatibility-engine
@@ -109,7 +142,70 @@ mcpServers:
         memory: 128Mi
       requests:
         cpu: 250m
-        memory: 128Mi
+        memory: 64Mi
     env:
       - name: RUST_LOG
         value: "debug"
+  # - id: cluster-insights
+  #   provider_id: model-context-protocol
+  #   runtime: rust
+  #   vcs:
+  #     uri: https://github.com/alpha-hack-program/cluster-insights-mcp-rs.git
+  #     ref: main
+  #     path: .
+  #   image: quay.io/atarazana/cluster-insights-mcp-rs:1.3.2
+  #   mcp_transport: "sse"
+  #   protocol: "http"
+  #   host: cluster-insights
+  #   port: 8000
+  #   uri: "/sse"
+  #   replicas: 1
+  #   resources:
+  #     limits:
+  #       cpu: 500m
+  #       memory: 128Mi
+  #     requests:
+  #       cpu: 250m
+  #       memory: 64Mi
+  #   env:
+  #     - name: RUST_LOG
+  #       value: "debug"
+  #   rbac:
+  #     clusterWide: true
+  #     rules:
+  #       # Permissions to read node information for cluster capacity analysis
+  #       - apiGroups: [""]
+  #         resources: ["nodes"]
+  #         verbs: ["get", "list"]
+  #       # Permissions to read pod information for resource allocation analysis
+  #       - apiGroups: [""]
+  #         resources: ["pods"]
+  #         verbs: ["get", "list"]
+  #       # Permissions to read namespace information for namespace-level resource usage
+  #       - apiGroups: [""]
+  #         resources: ["namespaces"]
+  #         verbs: ["get", "list"]
+  # - id: finance-engine
+  #   provider_id: model-context-protocol
+  #   runtime: rust
+  #   vcs:
+  #     uri: https://github.com/alpha-hack-program/finance-engine-mcp-rs.git
+  #     ref: main
+  #     path: .
+  #   image: quay.io/atarazana/finance-engine-mcp-rs:1.1.2
+  #   mcp_transport: "sse"
+  #   protocol: "http"
+  #   host: finance-engine
+  #   port: 8000
+  #   uri: "/sse"
+  #   replicas: 1
+  #   resources:
+  #     limits:
+  #       cpu: 500m
+  #       memory: 128Mi
+  #     requests:
+  #       cpu: 250m
+  #       memory: 64Mi
+  #   env:
+  #     - name: RUST_LOG
+  #       value: "debug"

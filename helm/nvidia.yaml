@@ -15,9 +15,8 @@ lsdEmbeddingDimension: 768
 lsdEmbeddingModelProvider: sentence-transformers
 lsdChunkSizeInTokens: 256
 
-lsdPlaygroundImage: quay.io/rh-aiservices-bu/llama-stack-playground:0.2.18
-
-loaderImage: quay.io/atarazana/rag-loader:0.1.1
+llamaStackDemoCoreImage: quay.io/atarazana/llama-stack-demo-core:0.1.1
+llamaStackDemoCoreImage: quay.io/atarazana/llama-stack-demo-core:0.1.1
 loaderDelay: 10
 loaderJobRetries: 30
 
@@ -70,8 +69,8 @@ models:
     tlsVerify: false
     externalAccess: true
     runtime:
-      templateName: vllm-serving-template
-      templateDisplayName: vLLM Serving Template
+      templateName: vllm-cuda-runtime
+      templateDisplayName: vLLM NVIDIA GPU ServingRuntime for KServe
       version: v0.9.1.0
       # image: quay.io/modh/vllm:rhoai-2.25-cuda
       image: registry.redhat.io/rhaiis/vllm-cuda-rhel9@sha256:ad756c01ec99a99cc7d93401c41b8d92ca96fb1ab7c5262919d818f2be4f3768
@@ -98,7 +97,7 @@ models:
       - --tool-call-parser
       - llama3_json
       - --chat-template
-      - /app/data/template/tool_chat_template_llama3.1_json.jinja
+      - /opt/app-root/template/tool_chat_template_llama3.1_json.jinja
 
 mcpServers:
   - id: eligibility-engine
@@ -188,27 +187,27 @@ mcpServers:
   #       - apiGroups: [""]
   #         resources: ["namespaces"]
   #         verbs: ["get", "list"]
-  - id: finance-engine
-    provider_id: model-context-protocol
-    runtime: rust
-    vcs:
-      uri: https://github.com/alpha-hack-program/finance-engine-mcp-rs.git
-      ref: main
-      path: .
-    image: quay.io/atarazana/finance-engine-mcp-rs:1.1.2
-    mcp_transport: "sse"
-    protocol: "http"
-    host: finance-engine
-    port: 8000
-    uri: "/sse"
-    replicas: 1
-    resources:
-      limits:
-        cpu: 500m
-        memory: 128Mi
-      requests:
-        cpu: 250m
-        memory: 64Mi
-    env:
-      - name: RUST_LOG
-        value: "debug"
+  # - id: finance-engine
+  #   provider_id: model-context-protocol
+  #   runtime: rust
+  #   vcs:
+  #     uri: https://github.com/alpha-hack-program/finance-engine-mcp-rs.git
+  #     ref: main
+  #     path: .
+  #   image: quay.io/atarazana/finance-engine-mcp-rs:1.1.2
+  #   mcp_transport: "sse"
+  #   protocol: "http"
+  #   host: finance-engine
+  #   port: 8000
+  #   uri: "/sse"
+  #   replicas: 1
+  #   resources:
+  #     limits:
+  #       cpu: 500m
+  #       memory: 128Mi
+  #     requests:
+  #       cpu: 250m
+  #       memory: 64Mi
+  #   env:
+  #     - name: RUST_LOG
+  #       value: "debug"

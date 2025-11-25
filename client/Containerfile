@@ -1,4 +1,11 @@
-# Accept a base image
+# Multi-purpose Containerfile for LlamaStack Client
+# Can be used for: run.py commands (Jobs), REST API, and Streamlit App
+#
+# Usage:
+#   - Jobs (document loading):  command: ["./start-run.sh", "load"]
+#   - REST API Server:          command: ["./start-api.sh"]
+#   - Streamlit Chat App:       command: ["./start-app.sh"]
+
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
@@ -31,17 +38,28 @@ RUN echo "Using Python 🐍 from: $(which python)" && \
     python --version && \
     uv pip install --python $(which python) --system .
 
-# Copy the full application code
+# Copy all application code
 COPY run.py .
-COPY rag_loader.py .
+COPY server.py .
+COPY app.py .
+COPY files.py .
+COPY utils.py .
+COPY vector_stores.py .
+COPY commands/ ./commands/
 
-# Now switch to a non-root user for runtime
+# Copy scripts
+COPY run.sh .
+COPY start-api.sh .
+COPY start-app.sh .
+
+# Make all scripts executable
+RUN chmod +x run.sh start-api.sh start-app.sh
+
+# Switch to non-root user for runtime
 USER 1001
 
-RUN cat /usr/bin/container-entrypoint
+# Expose common ports (can be overridden in deployment)
+EXPOSE 8000 8501
 
-# Add this to your Containerfile for debugging:
-RUN hexdump -C /usr/bin/container-entrypoint | head -10
-
-# Command to run the app
-ENTRYPOINT ["python", "run.py"]
+# No default CMD - will be specified at deployment time
+# This allows one image to be used for multiple purposes

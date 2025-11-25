@@ -18,5 +18,10 @@ export LLAMA_STACK_HOST
 export LLAMA_STACK_PORT
 export LLAMA_STACK_SECURE
 
-# Run the script
-python run.py "$@"
+echo "Starting Streamlit Chat App..."
+echo "LlamaStack: ${LLAMA_STACK_HOST}:${LLAMA_STACK_PORT}"
+echo "Chat App: http://localhost:8501"
+echo ""
+
+exec streamlit run app.py
+

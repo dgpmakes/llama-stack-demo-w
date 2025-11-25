@@ -19,7 +19,7 @@ lsdChunkSizeInTokens: 256
 
 lsdPlaygroundImage: quay.io/rh-aiservices-bu/llama-stack-playground:0.2.11
 
-loaderImage: quay.io/atarazana/rag-loader:0.1.1
+llamaStackDemoCoreImage: quay.io/atarazana/rag-loader:0.1.1
 loaderDelay: 10
 loaderJobRetries: 30
 

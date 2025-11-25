@@ -86,9 +86,10 @@ def load_command() -> None:
         print(f"  TEST_QUERY: '{test_query}'")
         
         # Get documents folder
-        docs_folder: str = os.environ.get("DOCS_FOLDER", "./docs")
+        docs_folder: str = os.environ.get("DOCS_FOLDER")
         if not docs_folder:
             raise ValueError("DOCS_FOLDER environment variable must be set")
+        print(f"  DOCS_FOLDER=>: '{docs_folder}'")
 
         # Initialize client
         client: LlamaStackClient = create_client(host=host, port=int(port), secure=secure)

@@ -11,7 +11,7 @@ import os
 import sys
 from typing import List, Dict, Any, Optional
 from llama_stack_client import LlamaStackClient
-from llama_stack_client.types import VectorStore, VectorStoreSearchResponse
+from llama_stack_client.types import ResponseObject, VectorStore, VectorStoreSearchResponse
 from vector_stores import list_vector_stores, search_vector_store
 from utils import create_client, create_langchain_client, get_rag_context, augment_instructions_with_context
 
@@ -95,17 +95,17 @@ def default_agent(
             {
                 "type": "mcp",
                 "server_label": "compatibility-engine-MCP-Server",
-                "server_url": "https://compatibility-engine-llama-stack-demo.apps.ocp.sandbox3322.opentlc.com/sse"
+                "server_url": "http://compatibility-engine.llama-stack-demo:8000/sse"
             },
             {
                 "type": "mcp",
                 "server_label": "eligibility-engine-MCP-Server",
-                "server_url": "https://eligibility-engine-llama-stack-demo.apps.ocp.sandbox3322.opentlc.com/sse"
+                "server_url": "http://eligibility-engine.llama-stack-demo:8000/sse"
             },
             {
                 "type": "mcp",
                 "server_label": "finance-engine-MCP-Server",
-                "server_url": "https://finance-engine-llama-stack-demo.apps.ocp.sandbox3322.opentlc.com/sse"
+                "server_url": "http://finance-engine.llama-stack-demo:8000/sse"
             },
         ]
     elif len(tools) == 0:
@@ -135,7 +135,7 @@ def default_agent(
     print("🔄 Executing Agent...")
     print("=" * 80 + "\n")
     
-    response = client.responses.create(**config)
+    response: ResponseObject = client.responses.create(**config)
 
     # Display response details
     print("\n📊 Agent Response:")

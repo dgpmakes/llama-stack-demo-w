@@ -2,30 +2,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "{{ .Values.app }}-playground"
+  name: "{{ .Values.app }}-app"
   namespace: {{ .Values.namespace }}
   annotations:
     app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ .Values.app }}"}]'
   labels:
-    app: "{{ .Values.app }}-playground"
-    app.kubernetes.io/component: "{{ .Values.app }}-playground"
-    app.kubernetes.io/instance: "{{ .Values.app }}-playground"
-    app.kubernetes.io/name: "{{ .Values.app }}-playground"
+    app: "{{ .Values.app }}-app"
+    app.kubernetes.io/component: "{{ .Values.app }}-app"
+    app.kubernetes.io/instance: "{{ .Values.app }}-app"
+    app.kubernetes.io/name: "{{ .Values.app }}-app"
     app.kubernetes.io/part-of: "{{ .Values.partOf }}"
     app.openshift.io/runtime: "python"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: "{{ .Values.app }}-playground"
+      app: "{{ .Values.app }}-app"
   template:
     metadata:
       labels:
-        app: "{{ .Values.app }}-playground"
+        app: "{{ .Values.app }}-app"
     spec:
       containers:
-        - name: "{{ .Values.app }}-playground"
-          image: {{ .Values.lsdPlaygroundImage }}
+        - name: "{{ .Values.app }}-app"
+          image: {{ .Values.llamaStackDemoCoreImage }}
+          command: ["./start-app.sh"]
           ports:
             - containerPort: 8501
               protocol: TCP
@@ -37,25 +38,25 @@ spec:
             requests:
               cpu: 250m
               memory: 500Mi
-          env:
-            - name: LLAMA_STACK_ENDPOINT
-              value: "http://{{ .Values.app }}-service:{{ .Values.lsdPort }}"
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.app }}-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: "{{ .Values.app }}-playground"
+  name: "{{ .Values.app }}-app"
   namespace: {{ .Values.namespace }}
   labels:
-    app: "{{ .Values.app }}-playground"
-    app.kubernetes.io/component: "{{ .Values.app }}-playground"
-    app.kubernetes.io/instance: "{{ .Values.app }}-playground"
-    app.kubernetes.io/name: "{{ .Values.app }}-playground"
+    app: "{{ .Values.app }}-app"
+    app.kubernetes.io/component: "{{ .Values.app }}-app"
+    app.kubernetes.io/instance: "{{ .Values.app }}-app"
+    app.kubernetes.io/name: "{{ .Values.app }}-app"
     app.kubernetes.io/part-of: "{{ .Values.partOf }}"
     app.openshift.io/runtime: "python"
 spec:
   selector:
-    app: "{{ .Values.app }}-playground"
+    app: "{{ .Values.app }}-app"
   ports:
     - name: 8501-tcp
       port: 8501
@@ -66,7 +67,7 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: "{{ .Values.app }}-playground"
+  name: "{{ .Values.app }}-app"
   namespace: {{ .Values.namespace }}
 spec:
   port:
@@ -76,6 +77,88 @@ spec:
     termination: edge
   to:
     kind: Service
-    name: "{{ .Values.app }}-playground"
+    name: "{{ .Values.app }}-app"
+    weight: 100
+  wildcardPolicy: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.app }}-api"
+  namespace: {{ .Values.namespace }}
+  annotations:
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ .Values.app }}"}]'
+  labels:
+    app: "{{ .Values.app }}-api"
+    app.kubernetes.io/component: "{{ .Values.app }}-api"
+    app.kubernetes.io/instance: "{{ .Values.app }}-api"
+    app.kubernetes.io/name: "{{ .Values.app }}-api"
+    app.kubernetes.io/part-of: "{{ .Values.partOf }}"
+    app.openshift.io/runtime: "python"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ .Values.app }}-api"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.app }}-api"
+    spec:
+      containers:
+        - name: "{{ .Values.app }}-api"
+          image: {{ .Values.llamaStackDemoCoreImage }}
+          command: ["./start-api.sh"]
+          ports:
+            - containerPort: 8501
+              protocol: TCP
+              name: 8501-tcp
+          resources:
+            limits:
+              cpu: '1'
+              memory: 4Gi
+            requests:
+              cpu: 250m
+              memory: 500Mi
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.app }}-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.app }}-api"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: "{{ .Values.app }}-api"
+    app.kubernetes.io/component: "{{ .Values.app }}-api"
+    app.kubernetes.io/instance: "{{ .Values.app }}-api"
+    app.kubernetes.io/name: "{{ .Values.app }}-api"
+    app.kubernetes.io/part-of: "{{ .Values.partOf }}"
+    app.openshift.io/runtime: "python"
+spec:
+  selector:
+    app: "{{ .Values.app }}-api"
+  ports:
+    - name: 8501-tcp
+      port: 8501
+      targetPort: 8501
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: "{{ .Values.app }}-api"
+  namespace: {{ .Values.namespace }}
+spec:
+  port:
+    targetPort: 8501-tcp
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: "{{ .Values.app }}-api"
     weight: 100
   wildcardPolicy: None
