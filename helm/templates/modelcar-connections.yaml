@@ -4,7 +4,6 @@ kind: Secret
 apiVersion: v1
 metadata:
   name: {{ .name }}
-  namespace: {{ $.Values.namespace }}
   labels:
     opendatahub.io/dashboard: 'true'
     app.kubernetes.io/part-of: {{ $.Values.partOf }}

@@ -21,7 +21,6 @@ metadata:
     app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ $appName }}"}]'
     {{- end }}
   name: {{ .name }}
-  namespace: {{ $.Values.namespace }}
   labels:
     networking.kserve.io/visibility: exposed
     opendatahub.io/dashboard: 'true'
@@ -103,7 +102,6 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: {{ .name }}-predictor
-  namespace: {{ $.Values.namespace }}
   labels:
     opendatahub.io/dashboard: 'true'
 spec:
@@ -138,7 +136,6 @@ metadata:
     {{- end }}
     app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ $appName }}"}]'
   name: {{ .name }}
-  namespace: {{ $.Values.namespace }}
   labels:
     opendatahub.io/dashboard: 'true'
 spec:

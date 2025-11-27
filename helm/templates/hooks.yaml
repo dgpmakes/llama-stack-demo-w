@@ -3,7 +3,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Values.app }}-config
-  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
@@ -29,7 +28,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ .Values.app }}-loader-{{ randAlphaNum 5 | lower }}
-  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
@@ -117,7 +115,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ .Values.app }}-labeler-hook-{{ randAlphaNum 5 | lower }}
-  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
@@ -211,7 +208,7 @@ spec:
         - name: DEPLOYMENT_NAME
           value: "{{ .Values.app }}"
         - name: NAMESPACE
-          value: {{ .Values.namespace | quote }}
+          value: {{ .Release.Namespace | quote }}
         - name: ANNOTATION_KEY
           value: "app.openshift.io/connects-to"
         - name: MODELS_JSON
@@ -224,7 +221,6 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: deployment-labeler
-  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
@@ -241,7 +237,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: deployment-labeler
-  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
@@ -262,7 +257,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: deployment-labeler
-  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
@@ -276,7 +270,6 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: deployment-labeler
-  namespace: {{ .Values.namespace }}
 roleRef:
   kind: Role
   name: deployment-labeler
@@ -287,7 +280,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ .Values.app }}-configmap-patcher-{{ randAlphaNum 5 | lower }}
-  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
@@ -377,14 +369,13 @@ spec:
         - name: TARGET_NAMESPACE
           value: "redhat-ods-applications"
         - name: SOURCE_NAMESPACE
-          value: {{ .Values.namespace | quote }}
+          value: {{ .Release.Namespace | quote }}
 ---
 # ServiceAccount for ConfigMap patcher
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: configmap-patcher
-  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
@@ -400,7 +391,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: configmap-patcher-{{ .Values.namespace }}
+  name: configmap-patcher-{{ .Release.Namespace }}
   namespace: redhat-ods-applications
   labels:
     app: {{ .Values.app }}
@@ -422,7 +413,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: configmap-patcher-{{ .Values.namespace }}
+  name: configmap-patcher-{{ .Release.Namespace }}
   namespace: redhat-ods-applications
   labels:
     app: {{ .Values.app }}
@@ -437,17 +428,17 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: configmap-patcher
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: configmap-patcher-{{ .Values.namespace }}
+  name: configmap-patcher-{{ .Release.Namespace }}
   apiGroup: rbac.authorization.k8s.io
 ---
 # ClusterRole to read ingress configuration
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: configmap-patcher-ingress-reader-{{ .Values.namespace }}
+  name: configmap-patcher-ingress-reader-{{ .Release.Namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
@@ -467,7 +458,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: configmap-patcher-ingress-reader-{{ .Values.namespace }}
+  name: configmap-patcher-ingress-reader-{{ .Release.Namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
@@ -481,8 +472,8 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: configmap-patcher
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: configmap-patcher-ingress-reader-{{ .Values.namespace }}
+  name: configmap-patcher-ingress-reader-{{ .Release.Namespace }}
   apiGroup: rbac.authorization.k8s.io

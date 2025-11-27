@@ -3,7 +3,6 @@ apiVersion: llamastack.io/v1alpha1
 kind: LlamaStackDistribution
 metadata:
   name: {{ .Values.app }}
-  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.app }}
     app.kubernetes.io/component: {{ .Values.app }}
@@ -88,7 +87,6 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: "{{ .Values.app }}-route"
-  namespace: {{ .Values.namespace }}
 spec:
   port:
     targetPort: http

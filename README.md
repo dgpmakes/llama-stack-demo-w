@@ -141,22 +141,19 @@ oc label namespace ${PROJECT} modelmesh-enabled=false opendatahub.io/dashboard=t
 This default delployment deploys one model... TODO.
 
 ```bash
-helm install llama-stack-demo helm/ --namespace ${PROJECT} \
-  --set namespace=${PROJECT} --timeout 10m
+helm install llama-stack-demo helm/ --namespace ${PROJECT} --timeout 10m
 ```
 
 If you have access to Intel Gaudi accelerators you could use this command which uses `helm/intel.values` instead:
 
 ```bash
-helm install llama-stack-demo helm/ --namespace ${PROJECT} \
-  --values helm/intel.yaml --set namespace=${PROJECT} --timeout 10m
+helm install llama-stack-demo helm/ --namespace ${PROJECT} --values helm/intel.yaml --timeout 10m
 ```
 
 If you want an NVIDIA deployment with two models run this. TODO explain which models... bla.
 
 ```bash
-helm install llama-stack-demo helm/ --namespace ${PROJECT} \
-  --values helm/nvidia.yaml --set namespace=${PROJECT} --timeout 10m
+helm install llama-stack-demo helm/ --namespace ${PROJECT} --values helm/nvidia.yaml --timeout 10m
 ```
 
 ### Wait for pods

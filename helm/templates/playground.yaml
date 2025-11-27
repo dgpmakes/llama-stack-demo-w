@@ -3,7 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "{{ .Values.app }}-app"
-  namespace: {{ .Values.namespace }}
   annotations:
     app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ .Values.app }}"}]'
   labels:
@@ -71,7 +70,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: "{{ .Values.app }}-app"
-  namespace: {{ .Values.namespace }}
   labels:
     app: "{{ .Values.app }}-app"
     app.kubernetes.io/component: "{{ .Values.app }}-app"
@@ -93,7 +91,6 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: "{{ .Values.app }}-app"
-  namespace: {{ .Values.namespace }}
 spec:
   port:
     targetPort: 8501-tcp
@@ -110,7 +107,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "{{ .Values.app }}-api"
-  namespace: {{ .Values.namespace }}
   annotations:
     app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ .Values.app }}"}]'
   labels:
@@ -153,7 +149,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: "{{ .Values.app }}-api"
-  namespace: {{ .Values.namespace }}
   labels:
     app: "{{ .Values.app }}-api"
     app.kubernetes.io/component: "{{ .Values.app }}-api"
@@ -175,7 +170,6 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: "{{ .Values.app }}-api"
-  namespace: {{ .Values.namespace }}
 spec:
   port:
     targetPort: 8501-tcp

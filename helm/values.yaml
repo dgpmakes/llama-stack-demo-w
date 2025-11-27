@@ -1,6 +1,5 @@
 # Application configuration
 app: llama-stack-demo
-namespace: llama-stack-demo
 partOf: llama-stack-demo
 
 lsdName: rh-dev
@@ -13,7 +12,7 @@ lsdEmbeddingDimension: 768
 lsdEmbeddingModelProvider: sentence-transformers
 lsdChunkSizeInTokens: 256
 
-llamaStackDemoCoreImage: quay.io/atarazana/llama-stack-demo-core:0.2.3
+llamaStackDemoCoreImage: quay.io/atarazana/llama-stack-demo-core:0.4.0
 
 loaderDelay: 10
 loaderJobRetries: 30
