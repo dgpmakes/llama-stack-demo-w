@@ -4,6 +4,10 @@ You can access it from project **{{ .Release.Namespace }}**
 
 This version uses configuration from ConfigMap `{{ .Values.app }}-run`.
 
+Playground consists of:
+- ChatBot UI
+- Simple API
+
 Models deployed:
 {{- range .Values.models }}
 - {{ .name }}:

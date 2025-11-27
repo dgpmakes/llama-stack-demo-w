@@ -131,9 +131,9 @@ spec:
           image: {{ .Values.llamaStackDemoCoreImage }}
           command: ["./start-api.sh"]
           ports:
-            - containerPort: 8501
+            - containerPort: 8700
               protocol: TCP
-              name: 8501-tcp
+              name: 8700-tcp
           resources:
             limits:
               cpu: '1'
@@ -144,6 +144,22 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ .Values.app }}-config
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8700
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8700
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
@@ -160,9 +176,9 @@ spec:
   selector:
     app: "{{ .Values.app }}-api"
   ports:
-    - name: 8501-tcp
-      port: 8501
-      targetPort: 8501
+    - name: 8700-tcp
+      port: 8700
+      targetPort: 8700
       protocol: TCP
   type: ClusterIP
 ---
@@ -172,7 +188,7 @@ metadata:
   name: "{{ .Values.app }}-api"
 spec:
   port:
-    targetPort: 8501-tcp
+    targetPort: 8700-tcp
   tls:
     insecureEdgeTerminationPolicy: Redirect
     termination: edge
