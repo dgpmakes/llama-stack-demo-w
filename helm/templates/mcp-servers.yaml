@@ -183,6 +183,11 @@ spec:
               {{- end }}
             {{- end }}
             {{- end }}
+          {{- if .addAppConfig }}
+          envFrom:
+            - configMapRef:
+                name: {{ $appName }}-config
+          {{- end }}
           {{- if .volumeMounts }}
           volumeMounts:
             {{- toYaml .volumeMounts | nindent 12 }}
