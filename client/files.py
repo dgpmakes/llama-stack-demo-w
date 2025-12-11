@@ -2,6 +2,8 @@
 File operations for LlamaStack.
 """
 
+import logging
+
 from pathlib import Path
 from typing import List
 
@@ -9,6 +11,7 @@ from llama_stack_client import LlamaStackClient
 from llama_stack_client.types.file import File
 from typing_extensions import Literal
 
+logger = logging.getLogger(__name__)
 
 def list_files_in_folder(
     folder_path: str, 
@@ -19,17 +22,17 @@ def list_files_in_folder(
     folder: Path = Path(folder_path)
     
     if not folder.exists():
-        print(f"Warning: Folder {folder_path} does not exist")
+        logger.warning(f"Folder {folder_path} does not exist")
         return file_paths
     
-    print(f"Listing files in: {folder_path}")
+    logger.debug(f"Listing files in: {folder_path}")
     
     for file_path in folder.iterdir():
         if file_path.is_file() and file_path.suffix.lower() in file_extensions:
-            print(f"Found file: {file_path.name}")
+            logger.debug(f"Found file: {file_path.name}")
             file_paths.append(file_path)
             
-    print(f"Successfully listed {len(file_paths)} files")
+    logger.debug(f"Successfully listed {len(file_paths)} files")
     return file_paths
 
 
@@ -51,7 +54,7 @@ def upload_file(
         raise ValueError(f"File {file} does not exist")
     
     # For each file (FilePath) create a file object and upload it to the vector store
-    file_response = client.files.create(
+    file_response: File = client.files.create(
         file=file,
         purpose=purpose
     )
@@ -73,6 +76,10 @@ def upload_files(
         print("No files to upload")
         return
     
-    file_ids = [upload_file(client, file) for file in files]
-    print(f"Uploaded {len(file_ids)} files")
+    file_ids: List[File] = [upload_file(client, file) for file in files]
+
+    # If the number of files is not the same as the number of file IDs, raise an error
+    if len(files) != len(file_ids):
+        raise ValueError(f"Number of files {len(files)} is not the same as the number of file IDs {len(file_ids)}")
+
     return file_ids

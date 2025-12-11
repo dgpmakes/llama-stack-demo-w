@@ -8,7 +8,10 @@ Usage:
 """
 
 import argparse
+import logging
+import os
 import sys
+import traceback
 
 from commands.load_command import load_command
 from commands.search_command import search_command
@@ -24,6 +27,22 @@ from commands.tool_command import groups_command as tool_groups_command, list_to
 #     return [tool_group for tool_group in client.toolgroups.list() if re.match(tool_name_pattern, tool_group.name)]
 
 def main() -> None:
+    # Get log level from environment variable, default to INFO if not set
+    log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
+    # Configure logging at the module level or at the start of your script
+    logging.basicConfig(
+        level=log_level,
+        format='%(levelname)s:%(name)s:%(message)s'
+    )
+    # Set specific log level for httpx
+    httpx_log_level = os.getenv('HTTPX_LOG_LEVEL', 'WARNING').upper()
+    logging.getLogger('httpx').setLevel(getattr(logging, httpx_log_level))
+
+    # Set specific log level for llama-stack-client
+    llama_stack_client_log_level = os.getenv('LLAMA_STACK_CLIENT_LOG_LEVEL', log_level)
+    logging.getLogger('llama_stack_client').setLevel(getattr(logging, llama_stack_client_log_level))
+
+    logger = logging.getLogger(__name__)
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(
         description="CLI tool for managing RAG operations with LlamaStack",
@@ -227,8 +246,10 @@ Examples:
     # Execute the appropriate command
     try:
         if args.command == "load":
+            logger.debug("Loading documents into the vector store...")
             load_command()
         elif args.command == "search":
+            logger.debug("Searching the vector store for relevant documents...")
             search_command(
                 query=args.query,
                 vector_store_id=args.vector_store_id,
@@ -240,6 +261,7 @@ Examples:
             # Handle --no-tools flag
             tools = [] if args.no_tools else None
             
+            logger.debug("Running agent command...")
             response = agent_command(
                 agent_type=args.agent_type,
                 input_text=args.input,
@@ -250,20 +272,24 @@ Examples:
             print(f"\nFinal Response:\n{response}")
         elif args.command == "model":
             if args.model_subcommand == "list":
+                logger.debug("Listing models...")
                 model_list_command(
                     filter_provider=args.provider,
                     filter_type=args.type,
                     verbose=args.verbose
                 )
             elif args.model_subcommand == "info":
+                logger.debug("Getting model information...")
                 model_info_command(model_identifier=args.model)
             else:
                 model_parser.print_help()
                 sys.exit(1)
         elif args.command == "tool":
             if args.tool_subcommand == "groups":
+                logger.debug("Listing tool groups...")
                 tool_groups_command(verbose=args.verbose)
             elif args.tool_subcommand == "list":
+                logger.debug("Listing tools...")
                 tool_list_command(
                     group_name=args.group,
                     all_groups=args.all,
@@ -276,10 +302,11 @@ Examples:
             parser.print_help()
             sys.exit(1)
     except KeyboardInterrupt:
-        print("\n\nOperation cancelled by user.")
+        logger.debug("Operation cancelled by user.")
         sys.exit(130)
     except Exception as e:
-        print(f"\nError: {e}", file=sys.stderr)
+        logger.error(f"Error: {e}")
+        logger.error(traceback.format_exc())
         sys.exit(1)
 
 
