@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/instance: {{ .Values.app }}
     app.kubernetes.io/name: {{ .Values.app }}
     app.kubernetes.io/part-of: {{ .Values.partOf }}
+    monitoring.opendatahub.io/scrape: 'true'
     app.openshift.io/runtime: python
 spec:
   replicas: 1
@@ -56,6 +57,39 @@ spec:
           value: {{ .Values.milvusDbPath }}
         - name: FMS_ORCHESTRATOR_URL
           value: {{ .Values.fmsOchestratorUrl }}
+        - name: OTEL_SERVICE_NAME
+          value: {{ .Values.app }}
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: 'http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318'
+        - name: OTEL_EXPORTER_OTLP_PROTOCOL
+          value: http/protobuf
+        - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+          value: 'http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/traces'
+        - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+          value: 'http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/metrics'
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: 'service.name=llamastack-user1-canopy,service.version=1.0.0,deployment.environment=development'
+        - name: OTEL_SERVICE_VERSION
+          value: 1.0.0
+        - name: OTEL_DEPLOYMENT_ENVIRONMENT
+          value: development
+        - name: OTEL_PYTHON_DISABLED_INSTRUMENTATIONS
+          value: sqlite3
+        - name: OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED
+          value: 'true'
+        - name: OTEL_BSP_MAX_QUEUE_SIZE
+          value: '512'
+        - name: OTEL_BSP_SCHEDULE_DELAY
+          value: '5000'
+        - name: OTEL_BSP_MAX_EXPORT_BATCH_SIZE
+          value: '100'
+        - name: OTEL_BSP_EXPORT_TIMEOUT
+          value: '30000'
+        - name: OTEL_METRIC_EXPORT_INTERVAL
+          value: '60000'
+        - name: TELEMETRY_SINKS
+          value: 'otel_trace, otel_metric'
+        
       name: llama-stack
       port: {{ .Values.lsdPort | default 8321 }}
       {{- if .Values.lsdResources }}
@@ -87,6 +121,8 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: "{{ .Values.app }}-route"
+  annotations:
+    haproxy.router.openshift.io/timeout: {{ .Values.routeTimeout | default "1m" }}
 spec:
   port:
     targetPort: http

@@ -110,7 +110,7 @@ Ensure you have access to GPU resources and the required container registries.
 ### Clone
 
 ```bash
-git clone https://github.com/alpha-hack-program/eligibility-mcp-llamastack.git && \
+TODO git clone https://github.com/alpha-hack-program/.git && \
     cd eligibility-mcp-llamastack/
 ```
 
@@ -118,6 +118,12 @@ git clone https://github.com/alpha-hack-program/eligibility-mcp-llamastack.git &
 
 ```bash
 oc login ...
+```
+
+### Make sure that at least a GPU enabled worked has this label:
+
+```yaml
+group: llama-stack-demo
 ```
 
 ### Create the project
@@ -141,19 +147,19 @@ oc label namespace ${PROJECT} modelmesh-enabled=false opendatahub.io/dashboard=t
 This default delployment deploys one model... TODO.
 
 ```bash
-helm install llama-stack-demo helm/ --namespace ${PROJECT} --timeout 10m
+helm install llama-stack-demo helm/ --namespace ${PROJECT} --timeout 20m
 ```
 
 If you have access to Intel Gaudi accelerators you could use this command which uses `helm/intel.values` instead:
 
 ```bash
-helm install llama-stack-demo helm/ --namespace ${PROJECT} --values helm/intel.yaml --timeout 10m
+helm install llama-stack-demo helm/ --namespace ${PROJECT} --values helm/intel.yaml --timeout 20m
 ```
 
 If you want an NVIDIA deployment with two models run this. TODO explain which models... bla.
 
 ```bash
-helm install llama-stack-demo helm/ --namespace ${PROJECT} --values helm/nvidia.yaml --timeout 10m
+helm install llama-stack-demo helm/ --namespace ${PROJECT} --values helm/nvidia.yaml --timeout 20m
 ```
 
 ### Wait for pods
@@ -254,11 +260,107 @@ helm uninstall llama-stack-demo --namespace ${PROJECT}
 Delete all remaining objects like jobs created in hooks.
 
 ```bash
-oc delete jobs -l "app.kubernetes.io/part-of=eligibility-mcp-llamastack"
+oc delete jobs -l "app.kubernetes.io/part-of=llama-stack-demo"
 ```
 
 Finally remove the project:
 
 ```bash
 oc delete project ${PROJECT}
+```
+
+# Monitoring
+
+```yaml
+apiVersion: dscinitialization.opendatahub.io/v2
+kind: DSCInitialization
+metadata:
+  name: default-dsci
+spec:
+  applicationsNamespace: redhat-ods-applications
+  monitoring:
+    alerting: {}
+    managementState: Managed
+    metrics:
+      replicas: 1
+      storage:
+        retention: 90d
+        size: 50Gi
+    namespace: redhat-ods-monitoring
+    traces:
+      sampleRatio: '1.0'
+      storage:
+        backend: pv
+        retention: 2160h0m0s
+        size: 100Gi
+  trustedCABundle:
+    customCABundle: ''
+    managementState: Managed
+```
+
+Just make sure that in your default-dsci spec->monitoring is coherent with:
+
+```yaml
+spec:
+  ...
+  monitoring:
+    alerting: {}
+    managementState: Managed
+    metrics:
+      replicas: 1
+      storage:
+        retention: 90d
+        size: 50Gi
+    namespace: redhat-ods-monitoring
+    traces:
+      sampleRatio: '1.0'
+      storage:
+        backend: pv
+        retention: 2160h0m0s
+        size: 100Gi
+...
+```
+
+### BUG collector service
+
+Create this service...
+
+```yaml
+kind: Service
+apiVersion: v1
+metadata:
+  name: data-science-collector
+  namespace: redhat-ods-monitoring
+  labels:
+    app.kubernetes.io/component: opentelemetry-collector
+    app.kubernetes.io/instance: redhat-ods-monitoring.data-science-collector
+    app.kubernetes.io/part-of: opentelemetry
+spec:
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: otlp-grpc
+      protocol: TCP
+      appProtocol: grpc
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      protocol: TCP
+      appProtocol: http
+      port: 4318
+      targetPort: 4318
+    - name: prometheus
+      protocol: TCP
+      port: 8889
+      targetPort: 8889
+  internalTrafficPolicy: Cluster
+
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app.kubernetes.io/component: opentelemetry-collector
+    app.kubernetes.io/instance: redhat-ods-monitoring.data-science-collector
+    app.kubernetes.io/managed-by: opentelemetry-operator
+    app.kubernetes.io/part-of: opentelemetry
 ```

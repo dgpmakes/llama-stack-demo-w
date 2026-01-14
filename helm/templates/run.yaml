@@ -244,9 +244,11 @@ data:
     {{- end }}
     - metadata:
         embedding_dimension: 768
-      model_id: granite-embedding-125m
+      # model_id: granite-embedding-125m
+      model_id: nomic-embed-text-v1.5
       provider_id: sentence-transformers
-      provider_model_id: ibm-granite/granite-embedding-125m-english
+      # provider_model_id: ibm-granite/granite-embedding-125m-english
+      provider_model_id: nomic-ai/nomic-embed-text-v1.5
       model_type: embedding
     shields: []
     vector_dbs: []

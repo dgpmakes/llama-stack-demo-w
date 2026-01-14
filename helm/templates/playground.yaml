@@ -21,6 +21,8 @@ spec:
     metadata:
       labels:
         app: "{{ .Values.app }}-app"
+      annotations:
+        instrumentation.opentelemetry.io/inject-python: redhat-ods-monitoring/data-science-instrumentation
     spec:
       containers:
         - name: "{{ .Values.app }}-app"
@@ -43,9 +45,21 @@ spec:
               memory: 500Mi
           env:
             - name: STREAMLIT_SERVER_FILE_WATCHER_TYPE
-              value: "none"
+              value: 'none'
             - name: STREAMLIT_SERVER_HEADLESS
-              value: "true"
+              value: 'true'
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: '1.0'
+            - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+              value: 'http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/traces'
+            - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+              value: 'http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/metrics'
+            - name: OTEL_LOGS_EXPORTER
+              value: none
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: 'http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318'
+            - name: TELEMETRY_SINKS
+              value: otel_trace
           envFrom:
             - configMapRef:
                 name: {{ .Values.app }}-config

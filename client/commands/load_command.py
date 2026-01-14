@@ -53,8 +53,15 @@ def load_command() -> None:
             raise ValueError("EMBEDDING_MODEL_PROVIDER environment variable must be set")
 
         # Get chunk size in tokens
-        chunk_size_in_tokens = os.environ.get("CHUNK_SIZE_IN_TOKENS", "512")
+        chunk_size_in_tokens = os.environ.get("CHUNK_SIZE_IN_TOKENS", "800")
         chunk_size_in_tokens = int(chunk_size_in_tokens)
+
+        # Get chunk overlap in tokens
+        chunk_overlap_in_tokens = os.environ.get("CHUNK_OVERLAP_IN_TOKENS", "400")
+        chunk_overlap_in_tokens = int(chunk_overlap_in_tokens)
+
+        # Get provider id
+        provider_id = os.environ.get("VECTOR_STORE_PROVIDER_ID", "milvus")
 
         # Get LlamaStack host, port and secure
         host = os.environ.get("LLAMA_STACK_HOST")
@@ -86,6 +93,9 @@ def load_command() -> None:
         logger.debug(f"  PORT: '{port}' (type: {type(port)})")
         logger.debug(f"  SECURE: '{secure}'")
         logger.debug(f"  VECTOR_STORE_NAME: '{vector_store_name}'")
+        logger.debug(f"  VECTOR_STORE_PROVIDER_ID: '{provider_id}'")
+        logger.debug(f"  CHUNK_SIZE_IN_TOKENS: '{chunk_size_in_tokens}'")
+        logger.debug(f"  CHUNK_OVERLAP_IN_TOKENS: '{chunk_overlap_in_tokens}'")
         logger.debug(f"  RANKER: '{ranker}'")
         logger.debug(f"  SCORE_THRESHOLD: '{score_threshold}'")
         logger.debug(f"  MAX_NUM_RESULTS: '{max_num_results}'")
@@ -137,9 +147,17 @@ def load_command() -> None:
 
         # Create vector store
         logger.info(f"Creating vector store: {vector_store_name}")
-        vector_store: VectorStore = create_vector_store(client, vector_store_name, files)
+        vector_store: VectorStore = create_vector_store(
+            client=client, 
+            name=vector_store_name, 
+            files=files, 
+            chunk_size_in_tokens=chunk_size_in_tokens, 
+            chunk_overlap_in_tokens=chunk_overlap_in_tokens, 
+            provider_id=provider_id, 
+            embedding_model_id=embedding_model_id, 
+            embedding_dimension=embedding_model_dimension)
         logger.info(f"Vector store created: {vector_store.name} (id: {vector_store.id})")
-        logger.info(f"Files uploaded into the vector store {vector_store.name} (id: {vector_store.id}): {len(files)} files")
+        logger.info(f"Files uploaded into the vector store {vector_store.name} (id: {vector_store.id}): {len(files_paths)} files")
 
         # Retrieve the vector store every 1 second until all files are in complete state or max attempts is reached
         logger.info("Checking status of vector store...")

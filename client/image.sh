@@ -68,12 +68,18 @@ function run_command() {
     -e EMBEDDING_MODEL="${EMBEDDING_MODEL}" \
     -e EMBEDDING_DIMENSION="${EMBEDDING_DIMENSION}" \
     -e EMBEDDING_MODEL_PROVIDER="${EMBEDDING_MODEL_PROVIDER}" \
+    -e VECTOR_STORE_PROVIDER_ID="${VECTOR_STORE_PROVIDER_ID}" \
+    -e VECTOR_STORE_NAME="${VECTOR_STORE_NAME:-rag-store}" \
+    -e RANKER="${RANKER:-default}" \
+    -e SCORE_THRESHOLD="${SCORE_THRESHOLD:-0.8}" \
+    -e MAX_NUM_RESULTS="${MAX_NUM_RESULTS:-10}" \
+    -e TEST_QUERY="${TEST_QUERY:-Tell me about taxes in Lysmark.}" \
     -e LLAMA_STACK_HOST="${LLAMA_STACK_HOST}" \
     -e LLAMA_STACK_PORT="${LLAMA_STACK_PORT}" \
     -e LLAMA_STACK_SECURE="${LLAMA_STACK_SECURE}" \
     -e DOCS_FOLDER="/app/docs" \
     -e CHUNK_SIZE_IN_TOKENS="${CHUNK_SIZE_IN_TOKENS}" \
-    -e VECTOR_STORE_NAME="${VECTOR_STORE_NAME:-rag-store}" \
+    -e CHUNK_OVERLAP_IN_TOKENS="${CHUNK_OVERLAP_IN_TOKENS}" \
     -e NO_PROXY="localhost,127.0.0.1,host.containers.internal" \
     -v "${DOCS_FOLDER}:/app/docs:ro,Z" \
     "${IMAGE_TO_RUN}" \

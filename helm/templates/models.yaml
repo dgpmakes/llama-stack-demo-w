@@ -11,21 +11,19 @@ metadata:
     opendatahub.io/model-type: generative
     openshift.io/display-name: "{{ .displayName }}"
     security.opendatahub.io/enable-auth: '{{ default false .enableAuth }}'
-    {{- if default true .rawDeployment }}
     serving.kserve.io/deploymentMode: RawDeployment
-    {{- else }}
     serving.knative.openshift.io/enablePassthrough: 'true'
     opendatahub.io/hardware-profile-namespace: redhat-ods-applications
     opendatahub.io/hardware-profile-name: nvidia
     opendatahub.io/connections: {{ .name }}
     opendatahub.io/model-type: generative
     app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ $appName }}"}]'
-    {{- end }}
   name: {{ .name }}
   labels:
     networking.kserve.io/visibility: exposed
     opendatahub.io/dashboard: 'true'
     opendatahub.io/genai-asset: 'true'
+    monitoring.opendatahub.io/scrape: 'true'
     app.kubernetes.io/part-of: {{ $.Values.partOf }}
     {{- if .additionalLabels }}
     {{- range $key, $value := .additionalLabels }}

@@ -48,6 +48,7 @@ metadata:
     {{- if .runtime }}
     app.openshift.io/runtime: {{ .runtime }}
     {{- end }}
+    monitoring.opendatahub.io/scrape: 'true'
   annotations:
     argocd.argoproj.io/sync-wave: "1"
     alpha.image.policy.openshift.io/resolve-names: '*'
@@ -79,6 +80,7 @@ spec:
       labels:
         app: {{ $host }}
         deployment: {{ $host }}
+        monitoring.opendatahub.io/scrape: 'true'
       {{- if .podAnnotations }}
       annotations:
         {{- toYaml .podAnnotations | nindent 8 }}

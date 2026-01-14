@@ -11,18 +11,19 @@ metadata:
 data:
   EMBEDDING_MODEL: "{{ .Values.lsdEmbeddingModel }}"
   EMBEDDING_DIMENSION: {{ .Values.lsdEmbeddingDimension | toString | quote }}
-  EMBEDDING_MODEL_PROVIDER: "{{ .Values.lsdEmbeddingModelProvider }}"
+  EMBEDDING_MODEL_PROVIDER: "{{ .Values.lsdEmbeddingModelProvider }}" 
+  VECTOR_STORE_PROVIDER_ID: "{{ .Values.lsdVectorStoreProviderId }}"
+  VECTOR_STORE_NAME: "{{ .Values.lsdVectorStoreName }}"
+  RANKER: "{{ .Values.lsdRanker }}"
+  SCORE_THRESHOLD: "{{ .Values.lsdScoreThreshold }}"
+  MAX_NUM_RESULTS: "{{ .Values.lsdMaxNumResults }}"
+  TEST_QUERY: "{{ .Values.lsdTestQuery }}"
   LLAMA_STACK_HOST: "{{ .Values.app }}-service"
   LLAMA_STACK_PORT: {{ .Values.lsdPort | toString | quote }}
   LLAMA_STACK_SECURE: "False"
   DOCS_FOLDER: "{{ .Values.docsFolder }}"
   CHUNK_SIZE_IN_TOKENS: "{{ .Values.lsdChunkSizeInTokens }}"
-  VECTOR_STORE_NAME: "rag-store"
-  RANKER: "default"
-  SCORE_THRESHOLD: "0.8"
-  MAX_NUM_RESULTS: "10"
-  TEST_QUERY: "Tell me about taxes in Lysmark."
-
+  CHUNK_OVERLAP_IN_TOKENS: "{{ .Values.lsdChunkOverlapInTokens }}"
 ---
 apiVersion: batch/v1
 kind: Job
