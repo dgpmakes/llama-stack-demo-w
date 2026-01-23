@@ -19,7 +19,7 @@ lsdChunkOverlapInTokens: 400
 lsdVectorStoreProviderId: milvus
 lsdVectorStoreName: rag-store
 lsdRanker: default
-lsdScoreThreshold: 0.8
+lsdScoreThreshold: 0.7
 lsdMaxNumResults: 10
 lsdTestQuery: Tell me about taxes in Lysmark.
 
@@ -107,11 +107,6 @@ models:
       - llama3_json
       - --chat-template
       - /opt/app-root/template/tool_chat_template_llama3.1_json.jinja
-  - name: Llama-4-Scout-17B-16E-W4A16
-    strict: true
-    url: https://litellm-litemaas.apps.prod.rhoai.rh-aiservices-bu.com/v1
-    api_token: sk-tIIo-Z4K4R0pyKdwE6J7Hg
-    maxTokens: '4096' # llama stack vllm max token, default is 4096
 
 mcpServers:
   - id: eligibility-engine
