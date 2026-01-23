@@ -1,6 +1,6 @@
 {{- $appName := .Values.app }}
-
-{{- range .Values.models }}
+{{- $allModels := (include "allModels" . | fromYaml).items }}
+{{- range $allModels }}
 {{- if not .url }}
 ---
 apiVersion: serving.kserve.io/v1beta1

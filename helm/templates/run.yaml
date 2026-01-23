@@ -20,7 +20,8 @@ data:
     - files
     providers:
       inference:
-      {{- range .Values.models }}
+      {{- $allModels := (include "allModels" . | fromYaml).items }}
+      {{- range $allModels }}
       - provider_id: {{ .name | replace " " "-" | lower }}
         provider_type: remote::vllm
         config:
@@ -228,7 +229,8 @@ data:
       type: sqlite
       db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/inference_store.db
     models:
-    {{- range .Values.models }}
+    {{- $allModels2 := (include "allModels" . | fromYaml).items }}
+    {{- range $allModels2 }}
     {{- if .embeddingsModel }}
     - metadata:
         embedding_dimension: {{ .vectorDimension }}

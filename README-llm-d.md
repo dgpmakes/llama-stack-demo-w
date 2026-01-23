@@ -443,6 +443,22 @@ This creates the actual inference service with the Qwen3-8B model.
 Create a file named `llm-inference-service.yaml`:
 
 ```yaml
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: qwen3-8b-fp8-dynamic-connection
+  namespace: llm-d-demo
+  labels:
+    opendatahub.io/dashboard: 'true'
+  annotations:
+    opendatahub.io/connection-type-protocol: uri
+    opendatahub.io/connection-type-ref: uri-v1
+    openshift.io/display-name: qwen3-8b-fp8-dynamic-connection
+stringData:
+  URI: oci://registry.redhat.io/rhelai1/modelcar-qwen3-8b-fp8-dynamic:1.5
+type: Opaque
+---
 apiVersion: serving.kserve.io/v1alpha1
 kind: LLMInferenceService
 metadata:
@@ -1366,4 +1382,54 @@ oc patch llminferenceservice qwen3-8b-fp8-dynamic-llmis -n llm-d-demo \
 **Document Version**: 1.0  
 **Last Updated**: January 2026  
 **Tested On**: OpenShift 4.19.9+ with OpenShift AI 3.0
+
+# EXTRA
+
+https://github.com/red-hat-data-services/kserve/tree/main/docs/samples/llmisvc
+
+SR-IOV Network Operator
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-sriov-network-operator
+
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: sriov-network-operators
+  namespace: openshift-sriov-network-operator
+spec:
+  targetNamespaces:
+    - openshift-sriov-network-operator
+
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: sriov-network-operator-subscription
+  namespace: openshift-sriov-network-operator
+spec:
+  channel: "stable"
+  installPlanApproval: Automatic
+  name: sriov-network-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+```
+
+```sh
+# Wait for the subscription to reach AtLatestKnown state
+oc wait --timeout=8m --for jsonpath='{.status.state}'=AtLatestKnown \
+  -n openshift-sriov-network-operator subscription/sriov-network-operator-subscription
+
+# Verify the operator pods are running
+oc get pods -n openshift-sriov-network-operator
+```
+
+
+https://github.com/red-hat-data-services/kserve/blob/main/docs/samples/llmisvc/dp-ep/deepseek-r1-gpu-rdma-roce/README.md
+
+https://github.com/red-hat-data-services/kserve/tree/main/docs/samples/storage/pvc-init
 

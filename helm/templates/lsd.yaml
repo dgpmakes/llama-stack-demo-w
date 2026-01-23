@@ -20,7 +20,8 @@ spec:
     containerSpec:
       env:
         {{- $appName := .Values.app }}
-        {{- range .Values.models }}
+        {{- $allModels := (include "allModels" $ | fromYaml).items }}
+        {{- range $allModels }}
         - name: {{ include "rag-lsd.envVarName" .name }}_MODEL
           valueFrom:
             secretKeyRef:

@@ -104,7 +104,8 @@ Generate the connects-to JSON for the deployment annotation
 */}}
 {{- define "deployment.connectsTo" -}}
 {{- $connections := list -}}
-{{- range .Values.models -}}
+{{- $allModels := (include "allModels" . | fromYaml).items -}}
+{{- range $allModels -}}
 {{- $connections = append $connections (dict "apiVersion" "apps/v1" "kind" "Deployment" "name" (printf "%s-predictor" .name)) -}}
 {{- end -}}
 {{- range .Values.mcpServers -}}

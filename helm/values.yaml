@@ -33,7 +33,9 @@ fmsOchestratorUrl: http://localhost:8080
 
 docsFolder: /data/docs
 
-models:
+# Local models - deployed in the cluster (safe to commit to git)
+# Remote models with API tokens should go in values-secrets.yaml as remoteModels
+localModels:
   # - name: granite-3-3-8b
   #   displayName: Granite 3.3 8B
   #   id: ibm-granite/granite-3.3-8b-instruct

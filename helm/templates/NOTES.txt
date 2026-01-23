@@ -9,7 +9,8 @@ Playground consists of:
 - Simple API
 
 Models deployed:
-{{- range .Values.models }}
+{{- $allModels := (include "allModels" . | fromYaml).items }}
+{{- range $allModels }}
 - {{ .name }}:
     - URL: "{{ "http://" }}{{ .name }}-predictor:8080/v1"
     - MODEL: "{{ .name }}"

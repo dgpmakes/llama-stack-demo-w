@@ -1,4 +1,5 @@
-{{- range .Values.models }}
+{{- $allModels := (include "allModels" . | fromYaml).items }}
+{{- range $allModels }}
 {{- if not .url }}
 ---
 kind: Secret
