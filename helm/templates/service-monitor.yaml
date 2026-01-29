@@ -1,0 +1,22 @@
+{{- $appName := .Values.app }}
+{{- $allModels := (include "allModels" . | fromYaml).items }}
+{{- range $allModels }}
+{{- if not .url }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    monitoring.opendatahub.io/scrape: "true"
+  name: {{ .name }}-metrics
+  
+spec:
+  endpoints:
+  - port: rhaiis-cuda-metrics
+    scheme: http
+  namespaceSelector: {}
+  selector:
+    matchLabels:
+      name: {{ .name }}-metrics
+{{- end }}
+{{- end }}
