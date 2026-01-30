@@ -9,12 +9,12 @@ data:
     image_name: rh
     apis:
     - agents
+    - batches
     - datasetio
     - eval
     - inference
     - safety
     - scoring
-    - telemetry
     - tool_runtime
     - vector_io
     - files
@@ -31,26 +31,18 @@ data:
           api_token: ${env.{{ include "rag-lsd.envVarName" .name }}_API_TOKEN:=fake}
           {{- end }}
           {{- if .tls_verify }}
-          tls_verify: ${env.{{ include "rag-lsd.envVarName" .name }}_TLS_VERIFY:false}
+          tls_verify: ${env.{{ include "rag-lsd.envVarName" .name }}_TLS_VERIFY:=true}
           {{- end }}
           {{- if .max_tokens }}
-          max_tokens: ${env.{{ include "rag-lsd.envVarName" .name }}_MAX_TOKENS:12000}
+          max_tokens: ${env.{{ include "rag-lsd.envVarName" .name }}_MAX_TOKENS:=4096}
           {{- end }}
       {{- end }}
-      - provider_id: ${env.AWS_ACCESS_KEY_ID:+bedrock}
+      - provider_id: ${env.AWS_BEARER_TOKEN_BEDROCK:+bedrock}
         provider_type: remote::bedrock
         config:
-          aws_access_key_id: ${env.AWS_ACCESS_KEY_ID:=}
-          aws_secret_access_key: ${env.AWS_SECRET_ACCESS_KEY:=}
-          aws_session_token: ${env.AWS_SESSION_TOKEN:=}
-          region_name: ${env.AWS_DEFAULT_REGION:=}
-          profile_name: ${env.AWS_PROFILE:=}
-          total_max_attempts: ${env.AWS_MAX_ATTEMPTS:=}
-          retry_mode: ${env.AWS_RETRY_MODE:=}
-          connect_timeout: ${env.AWS_CONNECT_TIMEOUT:=60}
-          read_timeout: ${env.AWS_READ_TIMEOUT:=60}
-          session_ttl: ${env.AWS_SESSION_TTL:=3600}
-      - provider_id: sentence-transformers
+          api_key: ${env.AWS_BEARER_TOKEN_BEDROCK:=}
+          region_name: ${env.AWS_DEFAULT_REGION:=us-east-2}
+      - provider_id: ${env.ENABLE_SENTENCE_TRANSFORMERS:+sentence-transformers}
         provider_type: inline::sentence-transformers
         config: {}
       - provider_id: ${env.WATSONX_API_KEY:+watsonx}
@@ -81,31 +73,15 @@ data:
         provider_type: inline::milvus
         config:
           db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/milvus.db
-          kvstore:
-            type: sqlite
-            namespace: null
-            db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/milvus_registry.db
+          persistence:
+            backend: kv_default
+            namespace: vector_io::milvus
       - provider_id: ${env.ENABLE_FAISS:+faiss}
         provider_type: inline::faiss
         config:
-          kvstore:
-            type: ${env.FAISS_KVSTORE_TYPE:=sqlite}
-            namespace: ${env.FAISS_KVSTORE_NAMESPACE:=}
-            # SQLite backend (type=sqlite)
-            db_path: ${env.FAISS_KVSTORE_DB_PATH:=}
-            # Redis, PostgreSQL, MongoDB backends (type=redis|postgres|mongodb)
-            host: ${env.FAISS_KVSTORE_HOST:=}
-            port: ${env.FAISS_KVSTORE_PORT:=}
-            # PostgreSQL, MongoDB backends (type=postgres|mongodb)
-            db: ${env.FAISS_KVSTORE_DB:=}
-            user: ${env.FAISS_KVSTORE_USER:=}
-            password: ${env.FAISS_KVSTORE_PASSWORD:=}
-            # PostgreSQL backend only (type=postgres)
-            ssl_mode: ${env.FAISS_KVSTORE_SSL_MODE:=}
-            ca_cert_path: ${env.FAISS_KVSTORE_CA_CERT_PATH:=}
-            table_name: ${env.FAISS_KVSTORE_TABLE_NAME:=}
-            # MongoDB backend only (type=mongodb)
-            collection_name: ${env.FAISS_KVSTORE_COLLECTION_NAME:=}
+          persistence:
+            backend: kv_default
+            namespace: vector_io::faiss
       - provider_id: ${env.MILVUS_ENDPOINT:+milvus-remote}
         provider_type: remote::milvus
         config:
@@ -116,46 +92,58 @@ data:
           ca_pem_path: ${env.MILVUS_CA_PEM_PATH:=}
           client_pem_path: ${env.MILVUS_CLIENT_PEM_PATH:=}
           client_key_path: ${env.MILVUS_CLIENT_KEY_PATH:=}
-          kvstore:
-            type: sqlite
-            namespace: null
-            db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/milvus_remote_registry.db
+          persistence:
+            backend: kv_default
+            namespace: vector_io::milvus_remote
+      - provider_id: ${env.ENABLE_PGVECTOR:+pgvector}
+        provider_type: remote::pgvector
+        config:
+          host: ${env.PGVECTOR_HOST:=localhost}
+          port: ${env.PGVECTOR_PORT:=5432}
+          db: ${env.PGVECTOR_DB:=}
+          user: ${env.PGVECTOR_USER:=}
+          password: ${env.PGVECTOR_PASSWORD:=}
+          persistence:
+            backend: kv_default
+            namespace: vector_io::pgvector
       safety:
-        - provider_id: trustyai_fms
-          provider_type: remote::trustyai_fms
-          module: llama_stack_provider_trustyai_fms==0.2.2
-          config:
-            orchestrator_url: ${env.FMS_ORCHESTRATOR_URL:=}
-            ssl_cert_path: ${env.FMS_SSL_CERT_PATH:=}
-            shields: {}
+      - provider_id: trustyai_fms
+        provider_type: remote::trustyai_fms
+        module: llama_stack_provider_trustyai_fms==0.3.2
+        config:
+          orchestrator_url: ${env.FMS_ORCHESTRATOR_URL:=}
+          ssl_cert_path: ${env.FMS_SSL_CERT_PATH:=}
+          shields: {}
       agents:
       - provider_id: meta-reference
         provider_type: inline::meta-reference
         config:
-          persistence_store:
-            type: sqlite
-            namespace: null
-            db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/agents_store.db
-          responses_store:
-            type: sqlite
-            db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/responses_store.db
+          persistence:
+            agent_state:
+              backend: kv_default
+              namespace: agents::meta_reference
+            responses:
+              backend: sql_default
+              table_name: agents_responses
+              max_write_queue_size: 10000
+              num_writers: 4
       eval:
       - provider_id: trustyai_lmeval
         provider_type: remote::trustyai_lmeval
         module: llama_stack_provider_lmeval==0.2.4
         config:
-            use_k8s: ${env.TRUSTYAI_LMEVAL_USE_K8S:=true}
-            base_url: ${env.VLLM_URL:=http://localhost:8000/v1}
-      - provider_id: ${env.EMBEDDING_MODEL:+trustyai_ragas_inline}
+          use_k8s: ${env.TRUSTYAI_LMEVAL_USE_K8S:=true}
+          base_url: ${env.VLLM_URL:=http://localhost:8000/v1}
+      - provider_id: ${env.TRUSTYAI_EMBEDDING_MODEL:+trustyai_ragas_inline}
         provider_type: inline::trustyai_ragas
         module: llama_stack_provider_ragas.inline
         config:
-          embedding_model: ${env.EMBEDDING_MODEL:=}
+          embedding_model: ${env.TRUSTYAI_EMBEDDING_MODEL:=}
       - provider_id: ${env.KUBEFLOW_LLAMA_STACK_URL:+trustyai_ragas_remote}
         provider_type: remote::trustyai_ragas
         module: llama_stack_provider_ragas.remote
         config:
-          embedding_model: ${env.EMBEDDING_MODEL:=}
+          embedding_model: ${env.TRUSTYAI_EMBEDDING_MODEL:=}
           kubeflow_config:
             results_s3_prefix: ${env.KUBEFLOW_RESULTS_S3_PREFIX:=}
             s3_credentials_secret_name: ${env.KUBEFLOW_S3_CREDENTIALS_SECRET_NAME:=}
@@ -169,16 +157,14 @@ data:
         provider_type: remote::huggingface
         config:
           kvstore:
-            type: sqlite
-            namespace: null
-            db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/huggingface_datasetio.db
+            backend: kv_default
+            namespace: datasetio::huggingface
       - provider_id: localfs
         provider_type: inline::localfs
         config:
           kvstore:
-            type: sqlite
-            namespace: null
-            db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/localfs_datasetio.db
+            backend: kv_default
+            namespace: datasetio::localfs
       scoring:
       - provider_id: basic
         provider_type: inline::basic
@@ -190,13 +176,6 @@ data:
         provider_type: inline::braintrust
         config:
           openai_api_key: ${env.OPENAI_API_KEY:=}
-      telemetry:
-      - provider_id: meta-reference
-        provider_type: inline::meta-reference
-        config:
-          service_name: "${env.OTEL_SERVICE_NAME:​}"
-          sinks: ${env.TELEMETRY_SINKS:=console}
-          otel_exporter_otlp_endpoint: ${env.OTEL_EXPORTER_OTLP_ENDPOINT:=}
       tool_runtime:
       - provider_id: brave-search
         provider_type: remote::brave-search
@@ -220,55 +199,102 @@ data:
         config:
           storage_dir: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/files
           metadata_store:
-            type: sqlite
-            db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/files_metadata.db
-    metadata_store:
-      type: sqlite
-      db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/registry.db
-    inference_store:
-      type: sqlite
-      db_path: {{ .Values.lsdBaseDir }}/.llama/distributions/rh/inference_store.db
-    models:
-    {{- $allModels2 := (include "allModels" . | fromYaml).items }}
-    {{- range $allModels2 }}
-    {{- if .embeddingsModel }}
-    - metadata:
-        embedding_dimension: {{ .vectorDimension }}
-      model_id: {{ .name | replace " " "-" | lower }}
-      provider_id: {{ .name | replace " " "-" | lower }}
-      model_type: embedding
-    {{- else }}
-    - metadata: {}
-      model_id: {{ .name | replace " " "-" | lower }}
-      provider_id: {{ .name | replace " " "-" | lower }}
-      model_type: llm
-    {{- end }}
-    {{- end }}
-    - metadata:
-        embedding_dimension: 768
-      # model_id: granite-embedding-125m
-      model_id: nomic-embed-text-v1.5
-      provider_id: sentence-transformers
-      # provider_model_id: ibm-granite/granite-embedding-125m-english
-      provider_model_id: nomic-ai/nomic-embed-text-v1.5
-      model_type: embedding
-    shields: []
-    vector_dbs: []
-    datasets: []
-    scoring_fns: []
-    benchmarks: []
-    tool_groups:
-    - toolgroup_id: builtin::websearch
-      provider_id: tavily-search
-    - toolgroup_id: builtin::rag
-      provider_id: rag-runtime
-    {{- range .Values.mcpServers }}
-    - toolgroup_id: mcp::{{ .id }}
-      provider_id: {{ .provider_id }}
-      mcp_endpoint:
-        uri: {{ .protocol }}://{{ .host }}:{{ .port }}{{ .uri }}
-    {{- end }}
-    
+            backend: sql_default
+            table_name: files_metadata
+      - provider_id: ${env.ENABLE_S3:+s3}
+        provider_type: remote::s3
+        config:
+          bucket_name: ${env.S3_BUCKET_NAME:=}
+          region: ${env.AWS_DEFAULT_REGION:=us-east-1}
+          aws_access_key_id: ${env.AWS_ACCESS_KEY_ID:=}
+          aws_secret_access_key: ${env.AWS_SECRET_ACCESS_KEY:=}
+          endpoint_url: ${env.S3_ENDPOINT_URL:=}
+          auto_create_bucket: ${env.S3_AUTO_CREATE_BUCKET:=false}
+          metadata_store:
+            backend: sql_default
+            table_name: files_metadata
+      batches:
+      - provider_id: reference
+        provider_type: inline::reference
+        config:
+          kvstore:
+            namespace: batches
+            backend: kv_default
+    storage:
+      backends:
+        kv_default:
+          type: kv_postgres
+          host: ${env.POSTGRES_HOST:=pg-lsd-service}
+          port: ${env.POSTGRES_PORT:=5432}
+          db: ${env.POSTGRES_DB:=llamastack}
+          user: ${env.POSTGRES_USER:=llamastack}
+          password: ${env.POSTGRES_PASSWORD:=llamastack}
+          table_name: ${env.POSTGRES_TABLE_NAME:=llamastack_kvstore}
+        sql_default:
+          type: sql_postgres
+          host: ${env.POSTGRES_HOST:=pg-lsd-service}
+          port: ${env.POSTGRES_PORT:=5432}
+          db: ${env.POSTGRES_DB:=llamastack}
+          user: ${env.POSTGRES_USER:=llamastack}
+          password: ${env.POSTGRES_PASSWORD:=llamastack}
+      stores:
+        metadata:
+          backend: kv_default
+          namespace: registry
+        inference:
+          table_name: inference_store
+          backend: sql_default
+          max_write_queue_size: 10000
+          num_writers: 4
+        conversations:
+          table_name: openai_conversations
+          backend: sql_default
+        prompts:
+          namespace: prompts
+          backend: kv_default
+    registered_resources:
+      models:
+      {{- $allModels2 := (include "allModels" . | fromYaml).items }}
+      {{- range $allModels2 }}
+      {{- if .embeddingsModel }}
+      - metadata:
+          embedding_dimension: {{ .vectorDimension }}
+        model_id: {{ .name | replace " " "-" | lower }}
+        provider_id: {{ .name | replace " " "-" | lower }}
+        model_type: embedding
+      {{- else }}
+      - metadata: {}
+        model_id: {{ .name | replace " " "-" | lower }}
+        provider_id: {{ .name | replace " " "-" | lower }}
+        model_type: llm
+      {{- end }}
+      {{- end }}
+      {{- if .Values.sentenceTransformersModel }}
+      - metadata:
+          embedding_dimension: {{ .Values.sentenceTransformersModel.vectorDimension | default 768 }}
+        model_id: {{ .Values.sentenceTransformersModel.modelId | default "nomic-embed-text-v1.5" }}
+        provider_id: sentence-transformers
+        provider_model_id: {{ .Values.sentenceTransformersModel.providerModelId | default "nomic-ai/nomic-embed-text-v1.5" }}
+        model_type: embedding
+      {{- end }}
+      shields: []
+      vector_dbs: []
+      datasets: []
+      scoring_fns: []
+      benchmarks: []
+      tool_groups:
+      - toolgroup_id: builtin::websearch
+        provider_id: tavily-search
+      - toolgroup_id: builtin::rag
+        provider_id: rag-runtime
+      {{- range .Values.mcpServers }}
+      - toolgroup_id: mcp::{{ .id }}
+        provider_id: {{ .provider_id }}
+        mcp_endpoint:
+          uri: {{ .protocol }}://{{ .host }}:{{ .port }}{{ .uri }}
+      {{- end }}
+    telemetry:
+      enabled: true
     server:
       port: 8321
     # external_providers_dir: {{ .Values.lsdBaseDir }}/.llama/providers.d

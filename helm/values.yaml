@@ -205,12 +205,13 @@ mcpServers:
       uri: https://github.com/alpha-hack-program/finance-engine-mcp-rs.git
       ref: main
       path: .
-    image: quay.io/atarazana/finance-engine-mcp-rs:2.0.3
-    mcp_transport: "sse"
+    image: quay.io/atarazana/finance-engine-mcp-rs:3.1.2
+    description: "Finance Engine MCP Server"
+    mcp_transport: "streamable-http"
     protocol: "http"
     host: finance-engine
     port: 8000
-    uri: "/sse"
+    uri: "/mcp"
     replicas: 1
     addAppConfig: true
     resources:
