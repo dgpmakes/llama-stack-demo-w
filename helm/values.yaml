@@ -10,10 +10,13 @@ lsdPort: 8321
 # Route timeout for HAProxy (default 30s is too short for model loading)
 routeTimeout: 1m
 
-# lsdEmbeddingModel: granite-embedding-125m
-lsdEmbeddingModel: nomic-embed-text-v1.5
-lsdEmbeddingDimension: 768
-lsdEmbeddingModelProvider: sentence-transformers
+# Sentence Transformers model
+lsdEmbeddingModel:
+  modelId: nomic-embed-text-v1.5
+  providerModelId: nomic-ai/nomic-embed-text-v1.5
+  vectorDimension: 768
+  modelProvider: sentence-transformers
+
 lsdChunkSizeInTokens: 800
 lsdChunkOverlapInTokens: 400
 lsdVectorStoreProviderId: milvus
@@ -142,12 +145,12 @@ mcpServers:
       uri: https://github.com/alpha-hack-program/compatibility-engine-mcp-rs.git
       ref: main
       path: .
-    image: quay.io/atarazana/compatibility-engine-mcp-rs:1.3.3
-    mcp_transport: "sse"
+    image: quay.io/atarazana/compatibility-engine-mcp-rs:2.0.2
+    mcp_transport: "streamable-http"
     protocol: "http"
     host: compatibility-engine
     port: 8000
-    uri: "/sse"
+    uri: "/mcp"
     replicas: 1
     resources:
       limits:

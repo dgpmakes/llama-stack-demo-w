@@ -42,9 +42,11 @@ data:
         config:
           api_key: ${env.AWS_BEARER_TOKEN_BEDROCK:=}
           region_name: ${env.AWS_DEFAULT_REGION:=us-east-2}
-      - provider_id: ${env.ENABLE_SENTENCE_TRANSFORMERS:+sentence-transformers}
+      {{- if and .Values.lsdEmbeddingModel (eq .Values.lsdEmbeddingModel.modelProvider "sentence-transformers") }}
+      - provider_id: sentence-transformers
         provider_type: inline::sentence-transformers
         config: {}
+      {{- end }}
       - provider_id: ${env.WATSONX_API_KEY:+watsonx}
         provider_type: remote::watsonx
         config:
@@ -269,12 +271,12 @@ data:
         model_type: llm
       {{- end }}
       {{- end }}
-      {{- if .Values.sentenceTransformersModel }}
+      {{- if .Values.lsdEmbeddingModel }}
       - metadata:
-          embedding_dimension: {{ .Values.sentenceTransformersModel.vectorDimension | default 768 }}
-        model_id: {{ .Values.sentenceTransformersModel.modelId | default "nomic-embed-text-v1.5" }}
-        provider_id: sentence-transformers
-        provider_model_id: {{ .Values.sentenceTransformersModel.providerModelId | default "nomic-ai/nomic-embed-text-v1.5" }}
+          embedding_dimension: {{ .Values.lsdEmbeddingModel.vectorDimension | default 768 }}
+        model_id: {{ .Values.lsdEmbeddingModel.modelId | default "nomic-embed-text-v1.5" }}
+        provider_id: {{ .Values.lsdEmbeddingModel.modelProvider | default "sentence-transformers" }}
+        provider_model_id: {{ .Values.lsdEmbeddingModel.providerModelId | default "nomic-ai/nomic-embed-text-v1.5" }}
         model_type: embedding
       {{- end }}
       shields: []

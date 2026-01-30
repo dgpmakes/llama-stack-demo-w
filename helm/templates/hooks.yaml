@@ -9,9 +9,9 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/part-of: {{ .Values.partOf }}
 data:
-  EMBEDDING_MODEL: "{{ .Values.lsdEmbeddingModel }}"
-  EMBEDDING_DIMENSION: {{ .Values.lsdEmbeddingDimension | toString | quote }}
-  EMBEDDING_MODEL_PROVIDER: "{{ .Values.lsdEmbeddingModelProvider }}" 
+  EMBEDDING_MODEL: "{{ .Values.lsdEmbeddingModel.modelProvider }}/{{ .Values.lsdEmbeddingModel.providerModelId }}"
+  EMBEDDING_DIMENSION: {{ .Values.lsdEmbeddingModel.vectorDimension | toString | quote }}
+  EMBEDDING_MODEL_PROVIDER: "{{ .Values.lsdEmbeddingModel.modelProvider }}" 
   VECTOR_STORE_PROVIDER_ID: "{{ .Values.lsdVectorStoreProviderId }}"
   VECTOR_STORE_NAME: "{{ .Values.lsdVectorStoreName }}"
   RANKER: "{{ .Values.lsdRanker }}"

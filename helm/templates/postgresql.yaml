@@ -43,6 +43,7 @@ metadata:
     app.kubernetes.io/instance: pg-lsd-deployment
     app.kubernetes.io/name: pg-lsd-deployment
     app.kubernetes.io/part-of: llamastack
+    app.openshift.io/runtime: postgresql
 spec:
   replicas: 1
   selector:
