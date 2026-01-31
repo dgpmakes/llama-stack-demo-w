@@ -39,40 +39,6 @@ docsFolder: /data/docs
 # Local models - deployed in the cluster (safe to commit to git)
 # Remote models with API tokens should go in values-secrets.yaml as remoteModels
 localModels:
-  # - name: granite-3-3-8b
-  #   displayName: Granite 3.3 8B
-  #   id: ibm-granite/granite-3.3-8b-instruct
-  #   image: quay.io/redhat-ai-services/modelcar-catalog:granite-3.3-8b-instruct
-  #   maxModelLen: '15000'
-  #   maxTokens: '4096' # llama stack vllm max token, default is 4096
-  #   tlsVerify: false
-  #   externalAccess: true
-  #   runtime:
-  #     templateName: vllm-serving-template
-  #     templateDisplayName: vLLM Serving Template
-  #     version: v0.9.1.0
-  #     # image: quay.io/modh/vllm:rhoai-2.25-cuda
-  #     image: registry.redhat.io/rhaiis/vllm-cuda-rhel9@sha256:ad756c01ec99a99cc7d93401c41b8d92ca96fb1ab7c5262919d818f2be4f3768
-  #     resources:
-  #       limits:
-  #         cpu: '8'
-  #         memory: 24Gi
-  #       requests:
-  #         cpu: '6'
-  #         memory: 24Gi
-  #   accelerator:
-  #     type: nvidia.com/gpu
-  #     max: '1'
-  #     min: '1'
-  #     nodeSelector:
-  #       group: 'llama-stack-demo'
-  #     # productName: NVIDIA-A10G
-  #   args:
-  #     - '--enable-auto-tool-choice'
-  #     - '--tool-call-parser'
-  #     - 'granite'
-  #     - '--chat-template'
-  #     - '/app/data/template/tool_chat_template_granite.jinja'
   - name: llama-3-1-8b-w4a16
     displayName: Llama 3.1 8B
     id: RedHatAI/Meta-Llama-3.1-8B-Instruct-quantized.w4a16
@@ -208,7 +174,7 @@ mcpServers:
       uri: https://github.com/alpha-hack-program/finance-engine-mcp-rs.git
       ref: main
       path: .
-    image: quay.io/atarazana/finance-engine-mcp-rs:3.1.2
+    # image: quay.io/atarazana/finance-engine-mcp-rs:3.1.2
     description: "Finance Engine MCP Server"
     mcp_transport: "streamable-http"
     protocol: "http"
