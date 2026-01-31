@@ -57,6 +57,10 @@ metadata:
     app.openshift.io/vcs-ref: {{ .vcs.ref | quote }}
     app.openshift.io/vcs-uri: {{ .vcs.uri | quote }}
     {{- end }}
+    {{- if not .image }}
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"{{ $host }}:latest","namespace":"{{ $namespace }}"},"fieldPath":"spec.template.spec.containers[?(@.name==\"{{ $host }}\")].image"}]'
+    openshift.io/image.url: image-registry.openshift-image-registry.svc:5000/{{ $namespace }}/{{ $host }}:latest
+    {{- end }}
     app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ $appName }}"}]'
 spec:
   progressDeadlineSeconds: 600
@@ -114,7 +118,11 @@ spec:
       {{- end }}
       containers:
         - name: {{ $host }}
+          {{- if .image }}
           image: {{ .image }}
+          {{- else }}
+          image: image-registry.openshift-image-registry.svc:5000/{{ $namespace }}/{{ $host }}:latest
+          {{- end }}
           imagePullPolicy: {{ .imagePullPolicy | default "Always" }}
           {{- if .securityContext }}
           securityContext:
@@ -391,6 +399,74 @@ subjects:
   - kind: ServiceAccount
     name: {{ $host }}
     namespace: {{ $namespace }}
+{{- end }}
+
+# If there's no image, create an ImageStream and BuildConfig
+{{- if not .image }}
+# If there's no vcs, throw an error
+{{- if not .vcs }}
+{{- fail "vcs is required if image is not provided" }}
+{{- end }}
+---
+# ImageStream for {{ $host }}
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: {{ $host }}
+  namespace: {{ $namespace }}
+  labels:
+    app: {{ $host }}
+    app.kubernetes.io/component: {{ $host }}
+    app.kubernetes.io/instance: {{ $host }}
+    app.kubernetes.io/name: {{ $host }}
+    app.kubernetes.io/part-of: {{ $partOf }}
+spec:
+  lookupPolicy:
+    local: true
+---
+# BuildConfig for {{ $host }}
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: {{ $host }}
+  namespace: {{ $namespace }}
+  labels:
+    app: {{ $host }}
+    app.kubernetes.io/component: {{ $host }}
+    app.kubernetes.io/instance: {{ $host }}
+    app.kubernetes.io/name: {{ $host }}
+    app.kubernetes.io/part-of: {{ $partOf }}
+  annotations:
+    app.openshift.io/vcs-ref: {{ .vcs.ref | quote }}
+    app.openshift.io/vcs-uri: {{ .vcs.uri | quote }}
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"{{ $host }}"}]'
+spec:
+  source:
+    type: Git
+    git:
+      uri: {{ .vcs.uri }}
+      ref: {{ .vcs.ref }}
+    {{- if .vcs.path }}
+    contextDir: {{ .vcs.path }}
+    {{- end }}
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: {{ .vcs.dockerfile | default "Containerfile" }}
+  output:
+    to:
+      kind: ImageStreamTag
+      name: {{ $host }}:latest
+      namespace: {{ $namespace }}
+  triggers:
+    - type: ConfigChange
+  # resources:
+  #   limits:
+  #     cpu: {{ .resources.limits.cpu | default "1" }}
+  #     memory: {{ .resources.limits.memory | default "2Gi" }}
+  #   requests:
+  #     cpu: {{ .resources.requests.cpu | default "250m" }}
+  #     memory: {{ .resources.requests.memory | default "256Mi" }}
 {{- end }}
 
 {{- end }}

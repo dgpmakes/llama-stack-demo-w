@@ -20,3 +20,21 @@ spec:
       name: {{ .name }}-metrics
 {{- end }}
 {{- end }}
+---
+# For all MCP Servers
+{{- range .Values.mcpServers }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    monitoring.opendatahub.io/scrape: "true"
+  name: {{ .id }}-metrics
+spec:
+  endpoints:
+  - port: {{ .port }}-tcp
+    scheme: http
+  namespaceSelector: {}
+  selector:
+    matchLabels:
+      app: {{ .host }}
+{{- end }}

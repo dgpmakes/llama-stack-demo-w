@@ -37,7 +37,11 @@ MCP Servers deployed:
 - {{ .id }}:
     - Git: {{ .vcs.uri }} / {{ .vcs.ref }}
     - Runtime: {{ .runtime }}
+    {{- if .image }}
     - Image: {{ .image }}
+    {{- else }}
+    - Image built in OpenShift
+    {{- end }}
     - URI: uri: {{ .protocol }}://{{ .host }}:{{ .port }}{{ .uri }}
     {{- if .env }}
     - Environment variables:
