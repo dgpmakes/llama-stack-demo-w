@@ -36,14 +36,60 @@ fmsOchestratorUrl: http://localhost:8080
 
 # PostgreSQL configuration
 postgres:
+  # Deploy PostgreSQL infrastructure
+  deploy: true
+  # Use remote::pgvector provider
   enablePgVector: true
+  # Connection settings (used for both deployed and remote)
   host: pg-lsd-service
   port: 5432
   user: llamastack
   password: llamastack
   db: llamastack
 
+# Milvus configuration
+milvus:
+  # Deploy Milvus infrastructure (etcd + milvus-standalone)
+  deploy: true
+  # Use remote::milvus provider instead of inline::milvus
+  enableRemote: true
+  # Connection settings (used for both deployed and remote)
+  host: milvus-service
+  port: 19530
+  # Local deployment settings (used when deploy: true)
+  rootPassword: Milvus
+  storage: 20Gi
+  image: milvusdb/milvus:v2.6.0
+  etcdImage: quay.io/coreos/etcd:v3.5.5
+  attuImage: zilliz/attu:v2.5
+  # Remote Milvus auth settings (used when enableRemote: true)
+  token: ""
+  secure: "false"
+  consistencyLevel: Session
+  caPemPath: ""
+  clientPemPath: ""
+  clientKeyPath: ""
+
 docsFolder: /data/docs
+
+otelCollector:
+  enabled: true
+  endpoint: http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318
+  protocol: http/protobuf
+  tracesEndpoint: http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/traces
+  metricsEndpoint: http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/metrics
+  resourceAttributes: service.name=llamastack-user1-canopy,service.version=1.0.0,deployment.environment=development
+  serviceName: llama-stack-demo
+  serviceVersion: 1.0.0
+  deploymentEnvironment: development
+  pythonDisabledInstrumentations: sqlite3
+  pythonLoggingAutoInstrumentationEnabled: true
+  bspMaxQueueSize: 512
+  bspScheduleDelay: 5000
+  bspMaxExportBatchSize: 100
+  bspExportTimeout: 30000
+  metricExportInterval: 60000
+  telemetrySinks: otel_trace, otel_metric
 
 # Local models - deployed in the cluster (safe to commit to git)
 # Remote models with API tokens should go in values-secrets.yaml as remoteModels
@@ -96,12 +142,12 @@ mcpServers:
       uri: https://github.com/alpha-hack-program/eligibility-engine-mcp-rs.git
       ref: main
       path: .
-    image: quay.io/atarazana/eligibility-engine-mcp-rs:1.2.1
-    mcp_transport: "sse"
+    # image: quay.io/atarazana/eligibility-engine-mcp-rs:1.2.1
+    mcp_transport: "streamable-http"
     protocol: "http"
     host: eligibility-engine
     port: 8000
-    uri: "/sse"
+    uri: "/mcp"
     replicas: 1
     resources:
       limits:
@@ -137,45 +183,45 @@ mcpServers:
     env:
       - name: RUST_LOG
         value: "debug"
-  # - id: cluster-insights
-  #   provider_id: model-context-protocol
-  #   runtime: rust
-  #   vcs:
-  #     uri: https://github.com/alpha-hack-program/cluster-insights-mcp-rs.git
-  #     ref: main
-  #     path: .
-  #   image: quay.io/atarazana/cluster-insights-mcp-rs:1.3.2
-  #   mcp_transport: "sse"
-  #   protocol: "http"
-  #   host: cluster-insights
-  #   port: 8000
-  #   uri: "/sse"
-  #   replicas: 1
-  #   resources:
-  #     limits:
-  #       cpu: 500m
-  #       memory: 128Mi
-  #     requests:
-  #       cpu: 250m
-  #       memory: 64Mi
-  #   env:
-  #     - name: RUST_LOG
-  #       value: "debug"
-  #   rbac:
-  #     clusterWide: true
-  #     rules:
-  #       # Permissions to read node information for cluster capacity analysis
-  #       - apiGroups: [""]
-  #         resources: ["nodes"]
-  #         verbs: ["get", "list"]
-  #       # Permissions to read pod information for resource allocation analysis
-  #       - apiGroups: [""]
-  #         resources: ["pods"]
-  #         verbs: ["get", "list"]
-  #       # Permissions to read namespace information for namespace-level resource usage
-  #       - apiGroups: [""]
-  #         resources: ["namespaces"]
-  #         verbs: ["get", "list"]
+  - id: cluster-insights
+    provider_id: model-context-protocol
+    runtime: rust
+    vcs:
+      uri: https://github.com/alpha-hack-program/cluster-insights-mcp-rs.git
+      ref: main
+      path: .
+    # image: quay.io/atarazana/cluster-insights-mcp-rs:1.3.2
+    mcp_transport: "streamable-http"
+    protocol: "http"
+    host: cluster-insights
+    port: 8000
+    uri: "/mcp"
+    replicas: 1
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 64Mi
+    env:
+      - name: RUST_LOG
+        value: "debug"
+    rbac:
+      clusterWide: true
+      rules:
+        # Permissions to read node information for cluster capacity analysis
+        - apiGroups: [""]
+          resources: ["nodes"]
+          verbs: ["get", "list"]
+        # Permissions to read pod information for resource allocation analysis
+        - apiGroups: [""]
+          resources: ["pods"]
+          verbs: ["get", "list"]
+        # Permissions to read namespace information for namespace-level resource usage
+        - apiGroups: [""]
+          resources: ["namespaces"]
+          verbs: ["get", "list"]
   - id: finance-engine
     provider_id: model-context-protocol
     runtime: rust

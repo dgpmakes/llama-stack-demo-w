@@ -8,13 +8,12 @@ metadata:
     app.kubernetes.io/component: pg-lsd-secret
     app.kubernetes.io/instance: pg-lsd-secret
     app.kubernetes.io/name: pg-lsd-secret
-    app.kubernetes.io/part-of: llamastack
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
 type: Opaque
 stringData:
   POSTGRES_DB: {{ .Values.postgres.db | default "llamastack" | quote }}
   POSTGRES_USER: {{ .Values.postgres.user | default "llamastack" | quote }}
   POSTGRES_PASSWORD: {{ .Values.postgres.password | default "llamastack" | quote }}
----
 {{- if .Values.postgres.enablePgVector }}
 ---
 apiVersion: v1
@@ -26,13 +25,14 @@ metadata:
     app.kubernetes.io/component: pgvector-lsd-secret
     app.kubernetes.io/instance: pgvector-lsd-secret
     app.kubernetes.io/name: pgvector-lsd-secret
-    app.kubernetes.io/part-of: llamastack
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
 type: Opaque
 stringData:
   PGVECTOR_DB: {{ .Values.postgres.db | default "llamastack" | quote }}
   PGVECTOR_USER: {{ .Values.postgres.user | default "llamastack" | quote }}
   PGVECTOR_PASSWORD: {{ .Values.postgres.password | default "llamastack" | quote }}
 {{- end }}
+{{- if .Values.postgres.deploy }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -65,6 +65,8 @@ metadata:
     app.openshift.io/runtime: postgresql
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: pg-lsd
@@ -162,3 +164,190 @@ spec:
     port: 5432
     targetPort: 5432
   type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudbeaver-config
+  labels:
+    app: cloudbeaver
+    app.kubernetes.io/component: cloudbeaver-config
+    app.kubernetes.io/instance: cloudbeaver-config
+    app.kubernetes.io/name: cloudbeaver-config
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+data:
+  data-sources.json: |
+    {
+      "folders": {},
+      "connections": {
+        "pgvector-llamastack": {
+          "provider": "postgresql",
+          "driver": "postgres-jdbc",
+          "name": "pgvector-llamastack",
+          "save-password": true,
+          "read-only": false,
+          "configuration": {
+            "host": "{{ .Values.postgres.host }}",
+            "port": "{{ .Values.postgres.port }}",
+            "database": "{{ .Values.postgres.db }}",
+            "url": "jdbc:postgresql://{{ .Values.postgres.host }}:{{ .Values.postgres.port }}/{{ .Values.postgres.db }}",
+            "configurationType": "URL",
+            "type": "dev",
+            "auth-model": "native",
+            "user": "{{ .Values.postgres.user }}",
+            "password": "{{ .Values.postgres.password }}"
+          }
+        }
+      },
+      "connection-types": {
+        "dev": {
+          "name": "Development",
+          "color": "255,255,255",
+          "description": "Development connection",
+          "auto-commit": true,
+          "confirm-execute": false,
+          "confirm-data-change": false,
+          "auto-close-transactions": false
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudbeaver
+  labels:
+    app: cloudbeaver
+    app.kubernetes.io/component: cloudbeaver-deployment
+    app.kubernetes.io/instance: cloudbeaver-deployment
+    app.kubernetes.io/name: cloudbeaver-deployment
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.openshift.io/runtime: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudbeaver
+  template:
+    metadata:
+      labels:
+        app: cloudbeaver
+    spec:
+      initContainers:
+        - name: setup-workspace
+          image: busybox:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Setup workspace structure for shared connections
+              mkdir -p /workspace/GlobalConfiguration/.dbeaver
+              cp /config/data-sources.json /workspace/GlobalConfiguration/.dbeaver/data-sources.json
+              
+              echo "Workspace setup complete"
+              ls -la /workspace/GlobalConfiguration/.dbeaver/
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: cloudbeaver-data
+              mountPath: /workspace
+            - name: cloudbeaver-config
+              mountPath: /config
+      containers:
+        - name: cloudbeaver
+          image: dbeaver/cloudbeaver:latest
+          ports:
+            - name: http
+              containerPort: 8978
+          env:
+            - name: CB_SERVER_NAME
+              value: "LlamaStack DB Admin"
+            # Enable anonymous access and skip easy config wizard
+            - name: CB_ADMIN_NAME
+              value: "admin"
+            - name: CB_ADMIN_PASSWORD
+              value: "llamastack"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: cloudbeaver-data
+              mountPath: /opt/cloudbeaver/workspace
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8978
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8978
+            initialDelaySeconds: 60
+            periodSeconds: 20
+      volumes:
+        - name: cloudbeaver-data
+          emptyDir: {}
+        - name: cloudbeaver-config
+          configMap:
+            name: cloudbeaver-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudbeaver-service
+  labels:
+    app: cloudbeaver
+    app.kubernetes.io/component: cloudbeaver-service
+    app.kubernetes.io/instance: cloudbeaver-service
+    app.kubernetes.io/name: cloudbeaver-service
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+spec:
+  selector:
+    app: cloudbeaver
+  ports:
+    - name: http
+      port: 8978
+      targetPort: 8978
+  type: ClusterIP
+{{- if .Capabilities.APIVersions.Has "route.openshift.io/v1" }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: cloudbeaver
+  labels:
+    app: cloudbeaver
+    app.kubernetes.io/component: cloudbeaver-route
+    app.kubernetes.io/instance: cloudbeaver-route
+    app.kubernetes.io/name: cloudbeaver-route
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+spec:
+  to:
+    kind: Service
+    name: cloudbeaver-service
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+{{- end }}
+{{- end }}

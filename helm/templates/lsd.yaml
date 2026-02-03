@@ -98,42 +98,83 @@ spec:
               key: PGVECTOR_PASSWORD
         {{- end}}
         {{- end }}
+        {{- if and .Values.milvus .Values.milvus.enableRemote }}
+        - name: ENABLE_MILVUS
+          value: {{ .Values.milvus.enableRemote | quote }}
+        - name: MILVUS_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: milvus-remote-secret
+              key: MILVUS_ENDPOINT
+        - name: MILVUS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: milvus-remote-secret
+              key: MILVUS_TOKEN
+        - name: MILVUS_SECURE
+          valueFrom:
+            secretKeyRef:
+              name: milvus-remote-secret
+              key: MILVUS_SECURE
+        - name: MILVUS_CONSISTENCY_LEVEL
+          valueFrom:
+            secretKeyRef:
+              name: milvus-remote-secret
+              key: MILVUS_CONSISTENCY_LEVEL
+        - name: MILVUS_CA_PEM_PATH
+          valueFrom:
+            secretKeyRef:
+              name: milvus-remote-secret
+              key: MILVUS_CA_PEM_PATH
+        - name: MILVUS_CLIENT_PEM_PATH
+          valueFrom:
+            secretKeyRef:
+              name: milvus-remote-secret
+              key: MILVUS_CLIENT_PEM_PATH
+        - name: MILVUS_CLIENT_KEY_PATH
+          valueFrom:
+            secretKeyRef:
+              name: milvus-remote-secret
+              key: MILVUS_CLIENT_KEY_PATH
+        {{- end }}
         - name: MILVUS_DB_PATH
           value: {{ .Values.milvusDbPath | quote }}
         - name: FMS_ORCHESTRATOR_URL
           value: {{ .Values.fmsOchestratorUrl | quote }}
+        {{- if .Values.otelCollector.enabled }}
         - name: OTEL_SERVICE_NAME
           value: {{ .Values.app }}
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: 'http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318'
+          value: {{ .Values.otelCollector.endpoint | quote }}
         - name: OTEL_EXPORTER_OTLP_PROTOCOL
-          value: http/protobuf
+          value: {{ .Values.otelCollector.protocol | quote }}
         - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
-          value: 'http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/traces'
+          value: {{ .Values.otelCollector.tracesEndpoint | quote }}
         - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
-          value: 'http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/metrics'
+          value: {{ .Values.otelCollector.metricsEndpoint | quote }}
         - name: OTEL_RESOURCE_ATTRIBUTES
-          value: 'service.name=llamastack-user1-canopy,service.version=1.0.0,deployment.environment=development'
+          value: {{ .Values.otelCollector.resourceAttributes | quote }}
         - name: OTEL_SERVICE_VERSION
-          value: '1.0.0'
+          value: {{ .Values.otelCollector.serviceVersion | quote }}
         - name: OTEL_DEPLOYMENT_ENVIRONMENT
-          value: development
+          value: {{ .Values.otelCollector.deploymentEnvironment | quote }}
         - name: OTEL_PYTHON_DISABLED_INSTRUMENTATIONS
-          value: sqlite3
+          value: {{ .Values.otelCollector.pythonDisabledInstrumentations | quote }}
         - name: OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED
-          value: 'true'
+          value: {{ .Values.otelCollector.pythonLoggingAutoInstrumentationEnabled | quote }}
         - name: OTEL_BSP_MAX_QUEUE_SIZE
-          value: '512'
+          value: {{ .Values.otelCollector.bspMaxQueueSize | quote }}
         - name: OTEL_BSP_SCHEDULE_DELAY
-          value: '5000'
+          value: {{ .Values.otelCollector.bspScheduleDelay | quote }}
         - name: OTEL_BSP_MAX_EXPORT_BATCH_SIZE
-          value: '100'
+          value: {{ .Values.otelCollector.bspMaxExportBatchSize | quote }}
         - name: OTEL_BSP_EXPORT_TIMEOUT
-          value: '30000'
+          value: {{ .Values.otelCollector.bspExportTimeout | quote }}
         - name: OTEL_METRIC_EXPORT_INTERVAL
-          value: '60000'
+          value: {{ .Values.otelCollector.metricExportInterval | quote }}
         - name: TELEMETRY_SINKS
-          value: 'otel_trace, otel_metric'
+          value: {{ .Values.otelCollector.telemetrySinks | quote }}
+        {{- end }}
         
       name: llama-stack
       port: {{ .Values.lsdPort | default 8321 }}

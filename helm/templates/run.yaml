@@ -84,7 +84,7 @@ data:
           persistence:
             backend: kv_default
             namespace: vector_io::faiss
-      - provider_id: ${env.MILVUS_ENDPOINT:+milvus-remote}
+      - provider_id: ${env.ENABLE_MILVUS:+milvus-remote}
         provider_type: remote::milvus
         config:
           uri: ${env.MILVUS_ENDPOINT:=}
