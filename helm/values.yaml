@@ -37,6 +37,11 @@ fmsOchestratorUrl: http://localhost:8080
 # Pipelines configuration
 pipelines:
   enabled: true
+  # Python image from OpenShift internal registry (used for pipeline upserter)
+  pythonImage:
+    version: "3.12"
+    name: "python"
+    tag: "3.12-ubi9"
   store: kubernetes
   connection:
     name: pipelines
@@ -53,6 +58,36 @@ pipelines:
     host: minio.minio.svc
     port: 9000
     scheme: http
+  # Git repository for pipeline definitions
+  git:
+    repo: https://github.com/alpha-hack-program/llama-stack-demo.git
+    ref: next
+    context: pipelines
+  # Comma-separated list of pipeline names (without .py extension)
+  names: rag_pipeline
+  # Health check configuration for DSPA API
+  healthCheck:
+    maxRetries: 30
+    delay: 10
+  # Job backoff limit
+  backoffLimit: 3
+  # Pipeline runner configuration
+  runner:
+    pipelineName: rag-pipeline
+    vectorStoreProviderIds: "milvus, milvus-remote, pgvector"
+    experimentName: rag-pipeline-experiment
+    params:
+      gitRepo: alpha-hack-program/llama-stack-demo
+      gitContext: client/docs_pdf
+      gitRef: next
+      filenames: "2025_61-FR_INT.html.pdf"
+      vectorStoreName: rag-store
+      embeddingModel: sentence-transformers/nomic-ai/nomic-embed-text-v1.5
+      embeddingDimension: "768"
+      ranker: default
+      chunkSizeInTokens: "800"
+      chunkOverlapInTokens: "400"
+      useGpu: "false"
 
 # PostgreSQL configuration
 postgres:

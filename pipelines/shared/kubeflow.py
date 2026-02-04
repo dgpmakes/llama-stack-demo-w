@@ -2,10 +2,13 @@ import os
 import time
 import sys
 
-from typing import Optional
+from typing import Optional, Union
+
 
 from kubernetes import client as k8s_cli, config as k8s_conf
 
+import kfp_server_api
+from kfp_server_api.models import V2beta1PipelineVersion, V2beta1Pipeline
 import kfp
 from kfp import client as kfp_cli, compiler
 from kfp.dsl import base_component
@@ -85,8 +88,19 @@ def create_experiment(client: kfp_cli.Client, experiment_name: str) -> str:
     print(f">>>experimment: {experimment}")
     return experimment.experiment_id
 
+# Function that gets an existing experiment or creates a new one
+def get_or_create_experiment(client: kfp_cli.Client, experiment_name: str) -> str:
+    """Get an existing experiment by name or create a new one if it doesn't exist."""
+    try:
+        experiment = client.get_experiment(experiment_name=experiment_name)
+        print(f"Found existing experiment: {experiment.experiment_id}")
+        return experiment.experiment_id
+    except Exception:
+        print(f"Experiment '{experiment_name}' not found, creating new one...")
+        return create_experiment(client, experiment_name)
+
 # Function that creates a run of a pipeline id in a given experiment id with the latest version of the pipeline
-def create_run(client: kfp_cli.Client, pipeline_id: str, experiment_id: str, run_name: str, params: dict) -> str:
+def create_pipeline_run(client: kfp_cli.Client, pipeline_id: str, experiment_id: str, run_name: str, params: dict) -> str:
     pipeline_version_id = get_latest_pipeline_version_id(client, pipeline_id)
     print(f">>>pipeline_version_id: {pipeline_version_id}")
     if pipeline_version_id is None:
@@ -105,7 +119,7 @@ def create_run(client: kfp_cli.Client, pipeline_id: str, experiment_id: str, run
 def compile_and_upsert_pipeline(
         pipeline_func: base_component.BaseComponent,
         pipeline_package_path: str,
-        pipeline_name: str) -> None:
+        pipeline_name: str) -> Optional[Union[V2beta1PipelineVersion, V2beta1Pipeline]]:
     
     # Compile the pipeline
     compiler.Compiler().compile(
@@ -137,11 +151,12 @@ def compile_and_upsert_pipeline(
             # Get the pipeline by name
             print(f"Pipeline name: {pipeline_name}")
             pipeline_id = get_pipeline_id_by_name(client, pipeline_name)
+            pipeline: Optional[Union[V2beta1PipelineVersion, V2beta1Pipeline]] = None
             if pipeline_id:
                 print(f"Pipeline {pipeline_id} already exists. Uploading a new version.")
                 # Upload a new version of the pipeline with a version name equal to the pipeline package path plus a timestamp
                 pipeline_version_name=f"{pipeline_name}-{int(time.time())}"
-                client.upload_pipeline_version(
+                pipeline = client.upload_pipeline_version(
                     pipeline_package_path=pipeline_package_path,
                     pipeline_id=pipeline_id,
                     pipeline_version_name=pipeline_version_name
@@ -151,13 +166,16 @@ def compile_and_upsert_pipeline(
                 print(f"Pipeline {pipeline_name} does not exist. Uploading a new pipeline.")
                 print(f"Pipeline package path: {pipeline_package_path}")
                 # Upload the compiled pipeline
-                client.upload_pipeline(
+                pipeline = client.upload_pipeline(
                     pipeline_package_path=pipeline_package_path,
                     pipeline_name=pipeline_name
                 )
                 print(f"Pipeline uploaded successfully to {kfp_endpoint}")
         except Exception as e:
             print(f"Failed to upload the pipeline: {e}")
+            return None
     else:
         print("KFP endpoint or token not provided. Skipping pipeline upload.")
+        return None
 
+    return pipeline

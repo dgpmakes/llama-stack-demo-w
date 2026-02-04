@@ -493,3 +493,503 @@ roleRef:
   kind: ClusterRole
   name: configmap-patcher-ingress-reader-{{ .Release.Namespace }}
   apiGroup: rbac.authorization.k8s.io
+---
+{{- if .Values.pipelines.enabled }}
+# Job to compile and upsert pipelines
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.app }}-upsert-pipelines-{{ randAlphaNum 5 | lower }}
+  labels:
+    app: {{ .Values.app }}
+    app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.kubernetes.io/component: upsert-pipelines
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "4"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  template:
+    metadata:
+      name: {{ .Values.app }}-upsert-pipelines-{{ randAlphaNum 5 | lower }}
+    spec:
+      serviceAccountName: pipeline-upserter
+      restartPolicy: Never
+      initContainers:
+      - name: deterministic-delay-and-health-check
+        image: quay.io/openshift/origin-cli:latest
+        command: ['sh', '-c']
+        args:
+          - |
+            set -e
+            
+            echo "=== DSPA Health Check ==="
+            echo "Namespace: ${DATA_SCIENCE_PROJECT_NAMESPACE}"
+            
+            MAX_RETRIES={{ .Values.pipelines.healthCheck.maxRetries | default 30 }}
+            DELAY={{ .Values.pipelines.healthCheck.delay | default 10 }}
+            
+            echo "Max retries: ${MAX_RETRIES}"
+            echo "Delay between retries: ${DELAY}s"
+            
+            # Get the DSPA route host
+            for i in $(seq 1 ${MAX_RETRIES}); do
+              echo "Attempt ${i}/${MAX_RETRIES}: Getting DSPA route..."
+              DSPA_HOST=$(oc get route ds-pipeline-dspa -n ${DATA_SCIENCE_PROJECT_NAMESPACE} -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
+              
+              if [ -n "$DSPA_HOST" ]; then
+                echo "✓ Found DSPA route: ${DSPA_HOST}"
+                
+                # Check if the API is responding with a 200 status code 
+                echo "Checking API health at https://${DSPA_HOST}/apis/v1beta1/healthz..."
+                if curl -sk --max-time 10 "https://${DSPA_HOST}/apis/v1beta1/healthz" -o /dev/null -w "%{http_code}" | grep -q "200"; then
+                  echo "✓ DSPA API is healthy!"
+                  exit 0
+                else
+                  echo "API not ready yet, waiting ${DELAY}s..."
+                fi
+              else
+                echo "Route not found yet, waiting ${DELAY}s..."
+              fi
+              
+              sleep ${DELAY}
+            done
+            
+            echo "❌ ERROR: Failed to reach DSPA API after ${MAX_RETRIES} attempts"
+            exit 1
+        env:
+        - name: DATA_SCIENCE_PROJECT_NAMESPACE
+          value: {{ .Release.Namespace | quote }}
+      containers:
+      - name: pipeline-upserter
+        image: image-registry.openshift-image-registry.svc:5000/openshift/{{ .Values.pipelines.pythonImage.name }}:{{ .Values.pipelines.pythonImage.tag }}
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          set -e
+          
+          echo "=== Pipeline Upserter ==="
+          echo "GIT_REPO: ${GIT_REPO}"
+          echo "GIT_REF: ${GIT_REF}"
+          echo "GIT_CONTEXT: ${GIT_CONTEXT}"
+          echo "PIPELINE_NAMES: ${PIPELINE_NAMES}"
+          echo "DATA_SCIENCE_PROJECT_NAMESPACE: ${DATA_SCIENCE_PROJECT_NAMESPACE}"
+          
+          # Install git if not available
+          if ! command -v git &> /dev/null; then
+            echo "Installing git..."
+            pip install --quiet gitpython 2>/dev/null || dnf install -y git > /dev/null 2>&1 || apt-get update && apt-get install -y git > /dev/null 2>&1
+          fi
+          
+          # Download and install oc CLI
+          echo "Installing OpenShift CLI..."
+          OC_VERSION="4.14.0"
+          curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OC_VERSION}/openshift-client-linux.tar.gz" | tar -xz -C /tmp
+          export PATH="/tmp:${PATH}"
+          
+          # Install uv package manager
+          echo "Installing uv..."
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          export PATH="$HOME/.local/bin:${PATH}"
+          
+          # Clone the repository
+          echo "Cloning repository ${GIT_REPO} (ref: ${GIT_REF})..."
+          WORK_DIR="/tmp/pipelines-repo"
+          git clone --depth 1 --branch "${GIT_REF}" "${GIT_REPO}" "${WORK_DIR}"
+          
+          # Change to context directory
+          cd "${WORK_DIR}/${GIT_CONTEXT}"
+          echo "Working directory: $(pwd)"
+          
+          # Install Python dependencies using uv sync
+          if [ -f "uv.lock" ]; then
+            echo "Installing Python dependencies using uv sync..."
+            uv sync
+          elif [ -f "pyproject.toml" ]; then
+            echo "Installing Python dependencies from pyproject.toml..."
+            uv sync
+          elif [ -f "requirements.txt" ]; then
+            echo "Installing Python dependencies from requirements.txt..."
+            uv pip install -r requirements.txt
+          fi
+          
+          # Get the DSPA host and token
+          DSPA_HOST=$(oc get route ds-pipeline-dspa -n ${DATA_SCIENCE_PROJECT_NAMESPACE} -o jsonpath='{.spec.host}')
+          TOKEN=$(oc whoami -t)
+          
+          echo "DSPA_HOST: ${DSPA_HOST}"
+          
+          if [ -z "${DSPA_HOST}" ]; then
+            echo "❌ ERROR: Could not get DSPA host"
+            exit 1
+          fi
+          
+          # Process each pipeline
+          echo ""
+          echo "=== Processing Pipelines ==="
+          IFS=',' read -ra PIPELINES <<< "${PIPELINE_NAMES}"
+          
+          for PIPELINE in "${PIPELINES[@]}"; do
+            # Trim whitespace
+            PIPELINE=$(echo "${PIPELINE}" | xargs)
+            
+            if [ -z "${PIPELINE}" ]; then
+              continue
+            fi
+            
+            PIPELINE_FILE="${PIPELINE}.py"
+            
+            if [ ! -f "${PIPELINE_FILE}" ]; then
+              echo "⚠ WARNING: Pipeline file ${PIPELINE_FILE} not found, skipping..."
+              continue
+            fi
+            
+            echo ""
+            echo "--- Processing pipeline: ${PIPELINE} ---"
+            echo "Running: uv run python ${PIPELINE_FILE} ${TOKEN:+<token>} https://${DSPA_HOST}"
+            
+            uv run python "${PIPELINE_FILE}" "${TOKEN}" "https://${DSPA_HOST}"
+            
+            if [ $? -eq 0 ]; then
+              echo "✓ Successfully processed pipeline: ${PIPELINE}"
+            else
+              echo "❌ ERROR: Failed to process pipeline: ${PIPELINE}"
+              exit 1
+            fi
+          done
+          
+          echo ""
+          echo "=== All pipelines processed successfully ==="
+        env:
+        - name: GIT_REPO
+          value: {{ .Values.pipelines.git.repo | quote }}
+        - name: GIT_REF
+          value: {{ .Values.pipelines.git.ref | default "main" | quote }}
+        - name: GIT_CONTEXT
+          value: {{ .Values.pipelines.git.context | default "pipelines" | quote }}
+        - name: PIPELINE_NAMES
+          value: {{ .Values.pipelines.names | default "rag_pipeline" | quote }}
+        - name: DATA_SCIENCE_PROJECT_NAMESPACE
+          value: {{ .Release.Namespace | quote }}
+        resources:
+          limits:
+            cpu: '1'
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+  backoffLimit: {{ .Values.pipelines.backoffLimit | default 3 }}
+---
+# ServiceAccount for pipeline upserter
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pipeline-upserter
+  labels:
+    app: {{ .Values.app }}
+    app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.kubernetes.io/component: upsert-pipelines
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+---
+# Role for pipeline upserter to read routes
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pipeline-upserter
+  labels:
+    app: {{ .Values.app }}
+    app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.kubernetes.io/component: upsert-pipelines
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+rules:
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  resourceNames: ["ds-pipeline-dspa"]
+  verbs: ["get"]
+- apiGroups: ["datasciencepipelinesapplications.opendatahub.io"]
+  resources: ["datasciencepipelinesapplications"]
+  verbs: ["get"]
+- apiGroups: ["datasciencepipelinesapplications.opendatahub.io"]
+  resources: ["datasciencepipelinesapplications/api"]
+  verbs: ["get"]
+---
+# RoleBinding for pipeline upserter
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-upserter
+  labels:
+    app: {{ .Values.app }}
+    app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.kubernetes.io/component: upsert-pipelines
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+subjects:
+- kind: ServiceAccount
+  name: pipeline-upserter
+roleRef:
+  kind: Role
+  name: pipeline-upserter
+  apiGroup: rbac.authorization.k8s.io
+---
+# Job to run rag-pipeline for each vector store provider
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.app }}-pipeline-runner-{{ randAlphaNum 5 | lower }}
+  labels:
+    app: {{ .Values.app }}
+    app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.kubernetes.io/component: pipeline-runner
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  template:
+    metadata:
+      name: {{ .Values.app }}-pipeline-runner-{{ randAlphaNum 5 | lower }}
+    spec:
+      serviceAccountName: pipeline-runner
+      restartPolicy: Never
+      initContainers:
+      - name: deterministic-delay-and-health-check
+        image: quay.io/openshift/origin-cli:latest
+        command: ['sh', '-c']
+        args:
+          - |
+            set -e
+            
+            echo "=== DSPA Health Check ==="
+            echo "Namespace: ${DATA_SCIENCE_PROJECT_NAMESPACE}"
+            
+            MAX_RETRIES={{ .Values.pipelines.healthCheck.maxRetries | default 30 }}
+            DELAY={{ .Values.pipelines.healthCheck.delay | default 10 }}
+            
+            echo "Max retries: ${MAX_RETRIES}"
+            echo "Delay between retries: ${DELAY}s"
+            
+            # Get the DSPA route host
+            for i in $(seq 1 ${MAX_RETRIES}); do
+              echo "Attempt ${i}/${MAX_RETRIES}: Getting DSPA route..."
+              DSPA_HOST=$(oc get route ds-pipeline-dspa -n ${DATA_SCIENCE_PROJECT_NAMESPACE} -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
+              
+              if [ -n "$DSPA_HOST" ]; then
+                echo "✓ Found DSPA route: ${DSPA_HOST}"
+                
+                # Check if the API is responding
+                echo "Checking API health at https://${DSPA_HOST}/apis/v2beta1/healthz..."
+                if curl -sk --max-time 10 "https://${DSPA_HOST}/apis/v2beta1/healthz" | grep -q "HEALTHY\|healthy"; then
+                  echo "✓ DSPA API is healthy!"
+                  exit 0
+                else
+                  echo "API not ready yet, waiting ${DELAY}s..."
+                fi
+              else
+                echo "Route not found yet, waiting ${DELAY}s..."
+              fi
+              
+              sleep ${DELAY}
+            done
+            
+            echo "❌ ERROR: Failed to reach DSPA API after ${MAX_RETRIES} attempts"
+            exit 1
+        env:
+        - name: DATA_SCIENCE_PROJECT_NAMESPACE
+          value: {{ .Release.Namespace | quote }}
+      containers:
+      - name: pipeline-runner
+        image: image-registry.openshift-image-registry.svc:5000/openshift/{{ .Values.pipelines.pythonImage.name }}:{{ .Values.pipelines.pythonImage.tag }}
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          set -e
+          
+          echo "=== Pipeline Runner ==="
+          echo "GIT_REPO: ${GIT_REPO}"
+          echo "GIT_REF: ${GIT_REF}"
+          echo "GIT_CONTEXT: ${GIT_CONTEXT}"
+          echo "PIPELINE_NAME: ${PIPELINE_NAME}"
+          echo "VECTOR_STORE_PROVIDER_IDS: ${VECTOR_STORE_PROVIDER_IDS}"
+          echo "EXPERIMENT_NAME: ${EXPERIMENT_NAME}"
+          
+          # Install git if not available
+          if ! command -v git &> /dev/null; then
+            echo "Installing git..."
+            pip install --quiet gitpython 2>/dev/null || dnf install -y git > /dev/null 2>&1 || apt-get update && apt-get install -y git > /dev/null 2>&1
+          fi
+          
+          # Install uv package manager
+          echo "Installing uv..."
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          export PATH="$HOME/.local/bin:${PATH}"
+          
+          # Clone the repository
+          echo "Cloning repository ${GIT_REPO} (ref: ${GIT_REF})..."
+          WORK_DIR="/tmp/pipelines-repo"
+          git clone --depth 1 --branch "${GIT_REF}" "${GIT_REPO}" "${WORK_DIR}"
+          
+          # Change to context directory
+          cd "${WORK_DIR}/${GIT_CONTEXT}"
+          echo "Working directory: $(pwd)"
+          
+          # Install Python dependencies using uv sync
+          if [ -f "uv.lock" ]; then
+            echo "Installing Python dependencies using uv sync..."
+            uv sync
+          elif [ -f "pyproject.toml" ]; then
+            echo "Installing Python dependencies from pyproject.toml..."
+            uv sync
+          elif [ -f "requirements.txt" ]; then
+            echo "Installing Python dependencies from requirements.txt..."
+            uv pip install -r requirements.txt
+          fi
+          
+          # Run the pipeline runner script
+          echo ""
+          echo "=== Running rag_pipeline_runner.py ==="
+          uv run python rag_pipeline_runner.py \
+            --pipeline-name "${PIPELINE_NAME}" \
+            --experiment-name "${EXPERIMENT_NAME}" \
+            --vector-store-provider-ids "${VECTOR_STORE_PROVIDER_IDS}" \
+            --git-repo "${PIPELINE_GIT_REPO}" \
+            --git-context "${PIPELINE_GIT_CONTEXT}" \
+            --git-ref "${PIPELINE_GIT_REF}" \
+            --filenames "${PIPELINE_FILENAMES}" \
+            --vector-store-name "${PIPELINE_VECTOR_STORE_NAME}" \
+            --embedding-model "${PIPELINE_EMBEDDING_MODEL}" \
+            --embedding-dimension "${PIPELINE_EMBEDDING_DIMENSION}" \
+            --ranker "${PIPELINE_RANKER}" \
+            --chunk-size-in-tokens "${PIPELINE_CHUNK_SIZE_IN_TOKENS}" \
+            --chunk-overlap-in-tokens "${PIPELINE_CHUNK_OVERLAP_IN_TOKENS}" \
+            ${PIPELINE_USE_GPU:+--use-gpu}
+        env:
+        - name: GIT_REPO
+          value: {{ .Values.pipelines.git.repo | quote }}
+        - name: GIT_REF
+          value: {{ .Values.pipelines.git.ref | default "main" | quote }}
+        - name: GIT_CONTEXT
+          value: {{ .Values.pipelines.git.context | default "pipelines" | quote }}
+        - name: PIPELINE_NAME
+          value: {{ .Values.pipelines.runner.pipelineName | default "rag-pipeline" | quote }}
+        - name: VECTOR_STORE_PROVIDER_IDS
+          value: {{ .Values.pipelines.runner.vectorStoreProviderIds | default "milvus, milvus-remote, pgvector" | quote }}
+        - name: EXPERIMENT_NAME
+          value: {{ .Values.pipelines.runner.experimentName | default "rag-pipeline-experiment" | quote }}
+        - name: PIPELINE_GIT_REPO
+          value: {{ .Values.pipelines.runner.params.gitRepo | default "alpha-hack-program/llama-stack-demo" | quote }}
+        - name: PIPELINE_GIT_CONTEXT
+          value: {{ .Values.pipelines.runner.params.gitContext | default "client/docs_pdf" | quote }}
+        - name: PIPELINE_GIT_REF
+          value: {{ .Values.pipelines.runner.params.gitRef | default "next" | quote }}
+        - name: PIPELINE_FILENAMES
+          value: {{ .Values.pipelines.runner.params.filenames | default "2025_61-FR_INT.html.pdf" | quote }}
+        - name: PIPELINE_VECTOR_STORE_NAME
+          value: {{ .Values.pipelines.runner.params.vectorStoreName | default "rag-store" | quote }}
+        - name: PIPELINE_EMBEDDING_MODEL
+          value: {{ .Values.pipelines.runner.params.embeddingModel | default "sentence-transformers/nomic-ai/nomic-embed-text-v1.5" | quote }}
+        - name: PIPELINE_EMBEDDING_DIMENSION
+          value: {{ .Values.pipelines.runner.params.embeddingDimension | default "768" | quote }}
+        - name: PIPELINE_RANKER
+          value: {{ .Values.pipelines.runner.params.ranker | default "default" | quote }}
+        - name: PIPELINE_CHUNK_SIZE_IN_TOKENS
+          value: {{ .Values.pipelines.runner.params.chunkSizeInTokens | default "800" | quote }}
+        - name: PIPELINE_CHUNK_OVERLAP_IN_TOKENS
+          value: {{ .Values.pipelines.runner.params.chunkOverlapInTokens | default "400" | quote }}
+        - name: PIPELINE_USE_GPU
+          value: {{ .Values.pipelines.runner.params.useGpu | default "false" | quote }}
+        resources:
+          limits:
+            cpu: '1'
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+  backoffLimit: {{ .Values.pipelines.backoffLimit | default 3 }}
+---
+# ServiceAccount for pipeline runner
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pipeline-runner
+  labels:
+    app: {{ .Values.app }}
+    app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.kubernetes.io/component: pipeline-runner
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+---
+# Role for pipeline runner
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pipeline-runner
+  labels:
+    app: {{ .Values.app }}
+    app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.kubernetes.io/component: pipeline-runner
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+rules:
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  resourceNames: ["ds-pipeline-dspa"]
+  verbs: ["get"]
+- apiGroups: ["datasciencepipelinesapplications.opendatahub.io"]
+  resources: ["datasciencepipelinesapplications"]
+  verbs: ["get"]
+- apiGroups: ["datasciencepipelinesapplications.opendatahub.io"]
+  resources: ["datasciencepipelinesapplications/api"]
+  verbs: ["get"]
+---
+# RoleBinding for pipeline runner
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-runner
+  labels:
+    app: {{ .Values.app }}
+    app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.kubernetes.io/component: pipeline-runner
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+subjects:
+- kind: ServiceAccount
+  name: pipeline-runner
+roleRef:
+  kind: Role
+  name: pipeline-runner
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
