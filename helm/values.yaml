@@ -80,14 +80,14 @@ pipelines:
       gitRepo: alpha-hack-program/llama-stack-demo
       gitContext: client/docs_pdf
       gitRef: next
-      filenames: "2025_61-FR_INT.html.pdf"
+      filenames: "2025_61-FR_INT.html.pdf, 2025_61-FR.html.pdf, 2025_102_SD.html.pdf, 2025-47-SA-Act.html.pdf, 2025-47-SA-R1.html.pdf"
       vectorStoreName: rag-store
       embeddingModel: sentence-transformers/nomic-ai/nomic-embed-text-v1.5
       embeddingDimension: "768"
       ranker: default
       chunkSizeInTokens: "800"
       chunkOverlapInTokens: "400"
-      useGpu: "false"
+      useGpu: false
 
 # PostgreSQL configuration
 postgres:
