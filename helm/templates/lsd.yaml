@@ -137,6 +137,10 @@ spec:
               name: milvus-remote-secret
               key: MILVUS_CLIENT_KEY_PATH
         {{- end }}
+        {{- if .Values.ragDefaults.enableRagas }}
+        - name: TRUSTYAI_EMBEDDING_MODEL
+          value: {{ .Values.ragDefaults.embeddingModel.modelProvider }}/{{ .Values.ragDefaults.embeddingModel.providerModelId }}
+        {{- end }}
         - name: MILVUS_DB_PATH
           value: {{ .Values.milvusDbPath | quote }}
         - name: FMS_ORCHESTRATOR_URL

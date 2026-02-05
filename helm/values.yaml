@@ -19,6 +19,7 @@ ragDefaults:
     modelProvider: sentence-transformers
   chunkSizeInTokens: 800
   chunkOverlapInTokens: 400
+  enableRagas: true
 
 lsdVectorStoreProviderId: milvus
 lsdVectorStoreName: rag-store
@@ -64,7 +65,7 @@ pipelines:
     ref: next
     context: pipelines
   # Comma-separated list of pipeline names (without .py extension)
-  names: rag_pipeline
+  names: "rag_pipeline, ragas_pipeline"
   # Health check configuration for DSPA API
   healthCheck:
     maxRetries: 30
