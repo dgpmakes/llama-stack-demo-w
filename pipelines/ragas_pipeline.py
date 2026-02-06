@@ -166,7 +166,7 @@ def load_base_dataset_from_git(
     git_repo: str,
     git_context: str,
     git_ref: str,
-    dataset_filename: str,
+    base_dataset_filename: str,
     base_dataset_output: Output[Dataset],
 ):
     """
@@ -176,7 +176,7 @@ def load_base_dataset_from_git(
         git_repo: GitHub repository (e.g., 'alpha-hack-program/llama-stack-demo')
         git_context: Context path in the repository (e.g., 'materials/datasets')
         git_ref: Git reference/branch (e.g., 'main', 'next')
-        dataset_filename: Name of the dataset file (e.g., 'base_dataset.json')
+        base_dataset_filename: Name of the dataset file (e.g., 'base_dataset.json')
         base_dataset_output: Output artifact for the base dataset
     """
     import json
@@ -189,27 +189,27 @@ def load_base_dataset_from_git(
         raise ValueError("git_context parameter must be set")
     if not git_ref:
         raise ValueError("git_ref parameter must be set")
-    if not dataset_filename:
-        raise ValueError("dataset_filename parameter must be set")
+    if not base_dataset_filename:
+        raise ValueError("base_dataset_filename parameter must be set")
 
-    raw_url = f"https://raw.githubusercontent.com/{git_repo}/{git_ref}/{git_context}/{dataset_filename}"
+    raw_url = f"https://raw.githubusercontent.com/{git_repo}/{git_ref}/{git_context}/{base_dataset_filename}"
     print(f"[LOAD] Loading base dataset from: {raw_url}")
 
     try:
         response = requests.get(raw_url)
         response.raise_for_status()
-        dataset_content = response.text
+        base_dataset_content = response.text
 
-        dataset = json.loads(dataset_content)
-        print(f"[OK] Loaded {len(dataset)} questions from base dataset")
+        base_dataset = json.loads(base_dataset_content)
+        print(f"[OK] Loaded {len(base_dataset)} questions from base dataset")
 
         with open(base_dataset_output.path, "w", encoding="utf-8") as f:
-            f.write(dataset_content)
+            f.write(base_dataset_content)
 
         print(f"[OK] Written base dataset to artifact: {base_dataset_output.path}")
 
     except Exception as e:
-        print(f"[ERROR] Failed to load dataset: {str(e)}")
+        print(f"[ERROR] Failed to load base dataset: {str(e)}")
         raise
 
 
@@ -315,6 +315,7 @@ def generate_ragas_dataset(
     mcp_tools_json: str = "[]",
     instructions: str = "",
     timeout: int = 300,
+    retrieval_mode: str = "vector", # vector, text, hybrid
     file_search_max_chunks: int = 5,
     file_search_score_threshold: float = 0.7,
     file_search_max_tokens_per_chunk: int = 512,
@@ -333,6 +334,7 @@ def generate_ragas_dataset(
         mcp_tools_json: JSON string of MCP tool configs (from discover_mcp_tools)
         instructions: System prompt/instructions for the model (optional)
         timeout: Timeout in seconds for requests
+        retrieval_mode: Retrieval mode to use (vector, text, hybrid)
         file_search_max_chunks: Max number of chunks to retrieve (OpenAI: max_num_results)
         file_search_score_threshold: Min score for returned results (0–1)
         file_search_max_tokens_per_chunk: Max tokens per chunk in results
@@ -377,6 +379,7 @@ def generate_ragas_dataset(
             "type": "file_search",
             "vector_store_ids": [vector_store_id],
             "file_search": {
+                "retrieval_mode": retrieval_mode,
                 "max_chunks": file_search_max_chunks,
                 "score_threshold": file_search_score_threshold,
                 "max_tokens_per_chunk": file_search_max_tokens_per_chunk,
@@ -843,12 +846,13 @@ def pipeline(
     git_repo: str = "alpha-hack-program/llama-stack-demo",
     git_context: str = "materials/datasets",
     git_ref: str = "next",
-    dataset_filename: str = "base_dataset_small.json",
+    base_dataset_filename: str = "base_dataset_small.json",
     model_id: str = "llama-3-1-8b-w4a16/llama-3-1-8b-w4a16",
     embedding_model_id: str = "sentence-transformers/nomic-ai/nomic-embed-text-v1.5",
     vector_store_name: str = "",
     tools: str = "all",
     instructions: str = "",
+    retrieval_mode: str = "vector", # vector, text, hybrid
     file_search_max_chunks: int = 5,
     file_search_score_threshold: float = 0.7,
     file_search_max_tokens_per_chunk: int = 512,
@@ -871,9 +875,9 @@ def pipeline(
         git_repo=git_repo,
         git_context=git_context,
         git_ref=git_ref,
-        dataset_filename=dataset_filename,
+        base_dataset_filename=base_dataset_filename,
     )
-    load_task.set_caching_options(False)
+    load_task.set_caching_options(True)
     load_task.set_cpu_request("100m")
     load_task.set_cpu_limit("1")
     load_task.set_memory_request("256Mi")
@@ -918,6 +922,7 @@ def pipeline(
         mcp_tools_json=discover_task.output,
         instructions=instructions,
         timeout=timeout,
+        retrieval_mode=retrieval_mode,
         file_search_max_chunks=file_search_max_chunks,
         file_search_score_threshold=file_search_score_threshold,
         file_search_max_tokens_per_chunk=file_search_max_tokens_per_chunk,
@@ -971,7 +976,7 @@ if __name__ == "__main__":
 
     from shared.kubeflow import compile_and_upsert_pipeline
 
-    pipeline_package_path = __file__.replace(".py", "_2.yaml")
+    pipeline_package_path = __file__.replace(".py", ".yaml")
     pipeline_name = os.path.basename(__file__).replace(".py", "").replace("_", "-")
 
     compile_and_upsert_pipeline(

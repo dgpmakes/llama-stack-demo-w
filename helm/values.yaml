@@ -83,12 +83,38 @@ pipelines:
       gitRef: next
       filenames: "2025_61-FR_INT.html.pdf, 2025_61-FR.html.pdf, 2025_102_SD.html.pdf, 2025-47-SA-Act.html.pdf, 2025-47-SA-R1.html.pdf"
       vectorStoreName: rag-store
+      vectorStoreProviderId: "milvus, milvus-remote, pgvector"
       ranker: default
       useGpu: false
       # embeddingModel: sentence-transformers/nomic-ai/nomic-embed-text-v1.5 ==> default values in ragDefaults
       # embeddingDimension: "768" ==> default values in ragDefaults
       # chunkSizeInTokens: "800" ==> default values in ragDefaults
       # chunkOverlapInTokens: "400" ==> default values in ragDefaults
+  scheduler:
+    pipelineName: ragas-pipeline
+    vectorStoreProviderIds: "milvus, milvus-remote, pgvector"
+    experimentName: ragas-scoring-experiment
+    intervalMinutes: 60
+    params:
+      gitRepo: alpha-hack-program/llama-stack-demo
+      gitContext: client/docs_pdf
+      gitRef: next
+      base_dataset_filename: base_dataset_small.json
+      tools: "all"
+      instructions: "You are a helpful assistant that can answer questions about the documents in the vector store."
+      retrieval_modes: "vector, hybrid"
+      file_search_max_chunks: 5
+      file_search_score_threshold: 0.7
+      file_search_max_tokens_per_chunk: 512
+      metrics: "answer_relevancy,faithfulness,context_precision,context_recall"
+      mode: "inline"
+      batch_size: 0
+      timeout: 600
+      max_wait_seconds: 900
+      poll_interval: 5
+      vectorStoreName: rag-store
+      vectorStoreProviderId: "milvus, milvus-remote, pgvector"
+    
 
 # PostgreSQL configuration
 postgres:

@@ -39,80 +39,6 @@ data:
   CHUNK_SIZE_IN_TOKENS: "{{ .Values.ragDefaults.chunkSizeInTokens }}"
   CHUNK_OVERLAP_IN_TOKENS: "{{ .Values.ragDefaults.chunkOverlapInTokens }}"
 ---
-# apiVersion: batch/v1
-# kind: Job
-# metadata:
-#   name: {{ .Values.app }}-loader-{{ randAlphaNum 5 | lower }}
-#   labels:
-#     app: {{ .Values.app }}
-#     app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
-#     app.kubernetes.io/instance: {{ .Release.Name }}
-#     app.kubernetes.io/part-of: {{ .Values.partOf }}
-#     app.kubernetes.io/component: loader
-#   annotations:
-#     "helm.sh/hook": post-install,post-upgrade
-#     "helm.sh/hook-weight": "2"
-#     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-# spec:
-#   template:
-#     metadata:
-#       labels:
-#         app: {{ .Values.app }}
-#         app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
-#         app.kubernetes.io/instance: {{ .Release.Name }}
-#         app.kubernetes.io/part-of: {{ .Values.partOf }}
-#         app.kubernetes.io/component: loader
-#     spec:
-#       restartPolicy: Never
-#       initContainers:
-#       - name: deterministic-delay-and-health-check
-#         image: curlimages/curl:8.5.0
-#         command: ['sh', '-c']
-#         args:
-#           - |
-#             set -e
-            
-#             # Try to reach /docs with LLAMA_STACK_HOST and LLAMA_STACK_PORT for MAX_RETRIES times and sleep DELAY seconds between each try
-#             MAX_RETRIES={{ .Values.loaderJobRetries | default 10 }}
-#             DELAY={{ .Values.loaderDelay | default 5 | toString | quote }}
-#             HEALTH_CHECK_URL=http://{{ .Values.app }}-service:{{ .Values.lsdPort }}/docs
-#             for i in $(seq 1 ${MAX_RETRIES}); do
-#               if curl -f $HEALTH_CHECK_URL; then
-#                 break
-#               fi
-#               sleep ${DELAY}
-#             done
-#             if [ $i -eq ${MAX_RETRIES} ]; then
-#               echo "Failed to reach /docs after ${MAX_RETRIES} tries"
-#               exit 1
-#             fi
-#         envFrom:
-#         - configMapRef:
-#             name: {{ .Values.app }}-config
-#       containers:
-#       - name: loader
-#         image: "{{ .Values.llamaStackDemoCoreImage }}"
-#         imagePullPolicy: Always
-#         command: ["./run.sh", "load"]
-#         envFrom:
-#         - configMapRef:
-#             name: {{ .Values.app }}-config
-#         volumeMounts:
-#         - name: docs-volume
-#           mountPath: "{{ .Values.docsFolder }}"
-#         resources:
-#           limits:
-#             cpu: 500m
-#             memory: 1Gi
-#           requests:
-#             cpu: 100m
-#             memory: 256Mi
-#       volumes:
-#       - name: docs-volume
-#         configMap:
-#           name: {{ .Values.app }}-documents
-#   backoffLimit: {{ .Values.loaderJobRetries | default 3 }}
----
 {{/*
 Generate the connects-to JSON for the deployment annotation
 */}}
@@ -973,6 +899,168 @@ spec:
           value: {{ .Values.ragDefaults.chunkOverlapInTokens | toString | quote }}
         - name: PIPELINE_USE_GPU
           value: {{ .Values.pipelines.runner.params.useGpu | default "false" | quote }}
+        resources:
+          limits:
+            cpu: '1'
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+  backoffLimit: {{ .Values.pipelines.backoffLimit | default 3 }}
+---
+# Job to schedule recurring RAGAS pipeline runs (per vector store + retrieval mode; milvus → vector only)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.app }}-ragas-scheduler-{{ randAlphaNum 5 | lower }}
+  labels:
+    app: {{ .Values.app }}
+    app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.kubernetes.io/component: ragas-scheduler
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "6"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  template:
+    metadata:
+      name: {{ .Values.app }}-ragas-scheduler-{{ randAlphaNum 5 | lower }}
+    spec:
+      serviceAccountName: pipeline-runner
+      restartPolicy: Never
+      initContainers:
+      - name: dspa-health-check
+        image: quay.io/openshift/origin-cli:latest
+        command: ['sh', '-c']
+        args:
+          - |
+            set -e
+            MAX_RETRIES={{ .Values.pipelines.healthCheck.maxRetries | default 30 }}
+            DELAY={{ .Values.pipelines.healthCheck.delay | default 10 }}
+            echo "=== DSPA Health Check (RAGAS Scheduler) ==="
+            for i in $(seq 1 ${MAX_RETRIES}); do
+              echo "Attempt ${i}/${MAX_RETRIES}: Getting DSPA route..."
+              DSPA_HOST=$(oc get route ds-pipeline-dspa -n ${DATA_SCIENCE_PROJECT_NAMESPACE} -o jsonpath='{.spec.host}' 2>/dev/null || echo "")
+              if [ -n "$DSPA_HOST" ]; then
+                echo "✓ Found DSPA route: ${DSPA_HOST}"
+                if curl -sk --max-time 10 "https://${DSPA_HOST}/apis/v1beta1/healthz" -o /dev/null -w "%{http_code}" | grep -q "200"; then
+                  echo "✓ DSPA API is healthy!"
+                  exit 0
+                fi
+              fi
+              sleep ${DELAY}
+            done
+            echo "❌ ERROR: Failed to reach DSPA API after ${MAX_RETRIES} attempts"
+            exit 1
+        env:
+        - name: DATA_SCIENCE_PROJECT_NAMESPACE
+          value: {{ .Release.Namespace | quote }}
+      containers:
+      - name: ragas-scheduler
+        image: image-registry.openshift-image-registry.svc:5000/openshift/{{ .Values.pipelines.pythonImage.name }}:{{ .Values.pipelines.pythonImage.tag }}
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          set -e
+          echo "=== RAGAS Pipeline Scheduler ==="
+          echo "PIPELINE_NAME: ${RAGAS_SCHEDULER_PIPELINE_NAME}"
+          echo "VECTOR_STORE_PROVIDER_IDS: ${RAGAS_SCHEDULER_VECTOR_STORE_PROVIDER_IDS}"
+          echo "INTERVAL_MINUTES: ${RAGAS_SCHEDULER_INTERVAL_MINUTES}"
+          if ! command -v git &> /dev/null; then
+            pip install --quiet gitpython 2>/dev/null || true
+          fi
+          echo "Installing uv..."
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          export PATH="$HOME/.local/bin:${PATH}"
+          echo "Cloning repository ${GIT_REPO} (ref: ${GIT_REF})..."
+          WORK_DIR="/tmp/pipelines-repo"
+          git clone --depth 1 --branch "${GIT_REF}" "${GIT_REPO}" "${WORK_DIR}"
+          cd "${WORK_DIR}/${GIT_CONTEXT}"
+          if [ -f "uv.lock" ]; then
+            uv sync
+          elif [ -f "pyproject.toml" ]; then
+            uv sync
+          elif [ -f "requirements.txt" ]; then
+            uv pip install -r requirements.txt
+          fi
+          echo ""
+          echo "=== Running ragas_pipeline_scheduler.py ==="
+          uv run python ragas_pipeline_scheduler.py \
+            --pipeline-name "${RAGAS_SCHEDULER_PIPELINE_NAME}" \
+            --experiment-name "${RAGAS_SCHEDULER_EXPERIMENT_NAME}" \
+            --vector-store-provider-ids "${RAGAS_SCHEDULER_VECTOR_STORE_PROVIDER_IDS}" \
+            --interval-minutes "${RAGAS_SCHEDULER_INTERVAL_MINUTES}" \
+            --git-repo "${RAGAS_SCHEDULER_GIT_REPO}" \
+            --git-context "${RAGAS_SCHEDULER_GIT_CONTEXT}" \
+            --git-ref "${RAGAS_SCHEDULER_GIT_REF}" \
+            --base-dataset-filename "${RAGAS_SCHEDULER_BASE_DATASET_FILENAME}" \
+            --tools "${RAGAS_SCHEDULER_TOOLS}" \
+            --instructions "${RAGAS_SCHEDULER_INSTRUCTIONS}" \
+            --retrieval-modes "${RAGAS_SCHEDULER_RETRIEVAL_MODES}" \
+            --file-search-max-chunks "${RAGAS_SCHEDULER_FILE_SEARCH_MAX_CHUNKS}" \
+            --file-search-score-threshold "${RAGAS_SCHEDULER_FILE_SEARCH_SCORE_THRESHOLD}" \
+            --file-search-max-tokens-per-chunk "${RAGAS_SCHEDULER_FILE_SEARCH_MAX_TOKENS_PER_CHUNK}" \
+            --metrics "${RAGAS_SCHEDULER_METRICS}" \
+            --mode "${RAGAS_SCHEDULER_MODE}" \
+            --batch-size "${RAGAS_SCHEDULER_BATCH_SIZE}" \
+            --timeout "${RAGAS_SCHEDULER_TIMEOUT}" \
+            --max-wait-seconds "${RAGAS_SCHEDULER_MAX_WAIT_SECONDS}" \
+            --poll-interval "${RAGAS_SCHEDULER_POLL_INTERVAL}" \
+            --vector-store-name "${RAGAS_SCHEDULER_VECTOR_STORE_NAME}"
+          echo ""
+          echo "=== RAGAS scheduler finished successfully ==="
+        env:
+        - name: GIT_REPO
+          value: {{ .Values.pipelines.git.repo | quote }}
+        - name: GIT_REF
+          value: {{ .Values.pipelines.git.ref | default "main" | quote }}
+        - name: GIT_CONTEXT
+          value: {{ .Values.pipelines.git.context | default "pipelines" | quote }}
+        - name: RAGAS_SCHEDULER_PIPELINE_NAME
+          value: {{ .Values.pipelines.scheduler.pipelineName | default "ragas-pipeline" | quote }}
+        - name: RAGAS_SCHEDULER_EXPERIMENT_NAME
+          value: {{ .Values.pipelines.scheduler.experimentName | default "ragas-scoring-experiment" | quote }}
+        - name: RAGAS_SCHEDULER_VECTOR_STORE_PROVIDER_IDS
+          value: {{ .Values.pipelines.scheduler.vectorStoreProviderIds | default "milvus, milvus-remote, pgvector" | quote }}
+        - name: RAGAS_SCHEDULER_INTERVAL_MINUTES
+          value: {{ .Values.pipelines.scheduler.intervalMinutes | default 60 | toString | quote }}
+        - name: RAGAS_SCHEDULER_GIT_REPO
+          value: {{ .Values.pipelines.scheduler.params.gitRepo | default "alpha-hack-program/llama-stack-demo" | quote }}
+        - name: RAGAS_SCHEDULER_GIT_CONTEXT
+          value: {{ .Values.pipelines.scheduler.params.gitContext | default "client/docs_pdf" | quote }}
+        - name: RAGAS_SCHEDULER_GIT_REF
+          value: {{ .Values.pipelines.scheduler.params.gitRef | default "next" | quote }}
+        - name: RAGAS_SCHEDULER_BASE_DATASET_FILENAME
+          value: {{ .Values.pipelines.scheduler.params.base_dataset_filename | default "base_dataset_small.json" | quote }}
+        - name: RAGAS_SCHEDULER_TOOLS
+          value: {{ .Values.pipelines.scheduler.params.tools | default "all" | quote }}
+        - name: RAGAS_SCHEDULER_INSTRUCTIONS
+          value: {{ .Values.pipelines.scheduler.params.instructions | default "You are a helpful assistant that can answer questions about the documents in the vector store." | quote }}
+        - name: RAGAS_SCHEDULER_RETRIEVAL_MODES
+          value: {{ .Values.pipelines.scheduler.params.retrieval_modes | default "vector, hybrid" | quote }}
+        - name: RAGAS_SCHEDULER_FILE_SEARCH_MAX_CHUNKS
+          value: {{ .Values.pipelines.scheduler.params.file_search_max_chunks | default 5 | toString | quote }}
+        - name: RAGAS_SCHEDULER_FILE_SEARCH_SCORE_THRESHOLD
+          value: {{ .Values.pipelines.scheduler.params.file_search_score_threshold | default "0.7" | quote }}
+        - name: RAGAS_SCHEDULER_FILE_SEARCH_MAX_TOKENS_PER_CHUNK
+          value: {{ .Values.pipelines.scheduler.params.file_search_max_tokens_per_chunk | default 512 | toString | quote }}
+        - name: RAGAS_SCHEDULER_METRICS
+          value: {{ .Values.pipelines.scheduler.params.metrics | default "answer_relevancy,faithfulness,context_precision,context_recall" | quote }}
+        - name: RAGAS_SCHEDULER_MODE
+          value: {{ .Values.pipelines.scheduler.params.mode | default "inline" | quote }}
+        - name: RAGAS_SCHEDULER_BATCH_SIZE
+          value: {{ .Values.pipelines.scheduler.params.batch_size | default 0 | toString | quote }}
+        - name: RAGAS_SCHEDULER_TIMEOUT
+          value: {{ .Values.pipelines.scheduler.params.timeout | default 600 | toString | quote }}
+        - name: RAGAS_SCHEDULER_MAX_WAIT_SECONDS
+          value: {{ .Values.pipelines.scheduler.params.max_wait_seconds | default 900 | toString | quote }}
+        - name: RAGAS_SCHEDULER_POLL_INTERVAL
+          value: {{ .Values.pipelines.scheduler.params.poll_interval | default 5 | toString | quote }}
+        - name: RAGAS_SCHEDULER_VECTOR_STORE_NAME
+          value: {{ .Values.pipelines.scheduler.params.vectorStoreName | default "rag-store" | quote }}
         resources:
           limits:
             cpu: '1'

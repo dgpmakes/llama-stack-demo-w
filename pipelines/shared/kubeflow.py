@@ -99,6 +99,34 @@ def get_or_create_experiment(client: kfp_cli.Client, experiment_name: str) -> st
         print(f"Experiment '{experiment_name}' not found, creating new one...")
         return create_experiment(client, experiment_name)
 
+# Function that creates a recurring (scheduled) run of a pipeline in a given experiment
+def create_recurring_run(
+    client: kfp_cli.Client,
+    pipeline_id: str,
+    experiment_id: str,
+    job_name: str,
+    params: dict,
+    interval_second: int,
+    cron_expression: Optional[str] = None,
+    enabled: bool = True,
+) -> str:
+    """Create a recurring run (schedule) for a pipeline. Uses interval_second or cron_expression."""
+    pipeline_version_id = get_latest_pipeline_version_id(client, pipeline_id)
+    if pipeline_version_id is None:
+        raise ValueError(f"No pipeline versions found for pipeline_id: {pipeline_id}")
+    recurring_run = client.create_recurring_run(
+        experiment_id=experiment_id,
+        job_name=job_name,
+        pipeline_id=pipeline_id,
+        version_id=pipeline_version_id,
+        params=params,
+        interval_second=interval_second if not cron_expression else None,
+        cron_expression=cron_expression,
+        enabled=enabled,
+    )
+    return recurring_run.recurring_run_id
+
+
 # Function that creates a run of a pipeline id in a given experiment id with the latest version of the pipeline
 def create_pipeline_run(client: kfp_cli.Client, pipeline_id: str, experiment_id: str, run_name: str, params: dict) -> str:
     pipeline_version_id = get_latest_pipeline_version_id(client, pipeline_id)
