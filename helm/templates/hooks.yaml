@@ -852,12 +852,12 @@ spec:
           uv run python rag_pipeline_runner.py \
             --pipeline-name "${PIPELINE_NAME}" \
             --experiment-name "${EXPERIMENT_NAME}" \
-            --vector-store-provider-ids "${VECTOR_STORE_PROVIDER_IDS}" \
             --git-repo "${PIPELINE_GIT_REPO}" \
             --git-context "${PIPELINE_GIT_CONTEXT}" \
             --git-ref "${PIPELINE_GIT_REF}" \
             --filenames "${PIPELINE_FILENAMES}" \
-            --vector-store-name "${PIPELINE_VECTOR_STORE_NAME}" \
+            --vector-store-base-name "${PIPELINE_VECTOR_STORE_BASE_NAME}" \
+            --vector-store-provider-ids "${VECTOR_STORE_PROVIDER_IDS}" \
             --embedding-model "${PIPELINE_EMBEDDING_MODEL}" \
             --embedding-dimension "${PIPELINE_EMBEDDING_DIMENSION}" \
             --ranker "${PIPELINE_RANKER}" \
@@ -885,8 +885,8 @@ spec:
           value: {{ .Values.pipelines.runner.params.gitRef | default "next" | quote }}
         - name: PIPELINE_FILENAMES
           value: {{ .Values.pipelines.runner.params.filenames | default "2025_61-FR_INT.html.pdf" | quote }}
-        - name: PIPELINE_VECTOR_STORE_NAME
-          value: {{ .Values.pipelines.runner.params.vectorStoreName | default "rag-store" | quote }}
+        - name: PIPELINE_VECTOR_STORE_BASE_NAME
+          value: {{ .Values.pipelines.runner.params.vectorStoreBaseName | default .Values.ragDefaults.vectorStoreBaseName | default "rag-store" | quote }}
         - name: PIPELINE_EMBEDDING_MODEL
           value: {{ .Values.ragDefaults.embeddingModel.modelProvider }}/{{ .Values.ragDefaults.embeddingModel.providerModelId }}
         - name: PIPELINE_EMBEDDING_DIMENSION
@@ -1009,7 +1009,7 @@ spec:
             --timeout "${RAGAS_SCHEDULER_TIMEOUT}" \
             --max-wait-seconds "${RAGAS_SCHEDULER_MAX_WAIT_SECONDS}" \
             --poll-interval "${RAGAS_SCHEDULER_POLL_INTERVAL}" \
-            --vector-store-name "${RAGAS_SCHEDULER_VECTOR_STORE_NAME}" \
+            --vector-store-base-name "${RAGAS_SCHEDULER_VECTOR_STORE_BASE_NAME}" \
             --model-id "${RAGAS_SCHEDULER_MODEL_ID}"
           echo ""
           echo "=== RAGAS scheduler finished successfully ==="
@@ -1060,8 +1060,8 @@ spec:
           value: {{ .Values.pipelines.scheduler.params.max_wait_seconds | default 900 | toString | quote }}
         - name: RAGAS_SCHEDULER_POLL_INTERVAL
           value: {{ .Values.pipelines.scheduler.params.poll_interval | default 5 | toString | quote }}
-        - name: RAGAS_SCHEDULER_VECTOR_STORE_NAME
-          value: {{ .Values.pipelines.scheduler.params.vectorStoreName | default "rag-store" | quote }}
+        - name: RAGAS_SCHEDULER_VECTOR_STORE_BASE_NAME
+          value: {{ .Values.pipelines.scheduler.params.vectorStoreBaseName | default .Values.ragDefaults.vectorStoreBaseName | default "rag-store" | quote }}
         - name: RAGAS_SCHEDULER_MODEL_ID
           value: {{ .Values.ragDefaults.modelId | default .Values.pipelines.scheduler.params.model_id | default "llama-3-1-8b-w4a16/llama-3-1-8b-w4a16" | quote }}
         resources:

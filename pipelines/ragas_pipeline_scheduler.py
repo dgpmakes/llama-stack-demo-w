@@ -157,7 +157,7 @@ def parse_args():
     parser.add_argument(
         "--file-search-max-tokens-per-chunk",
         type=int,
-        default=int(os.environ.get("RAGAS_SCHEDULER_FILE_SEARCH_MAX_TOKENS_PER_CHUNK", "512")),
+        default=int(os.environ.get("RAGAS_SCHEDULER_FILE_SEARCH_MAX_TOKENS_PER_CHUNK", "0")),
         help="File search max tokens per chunk",
     )
     parser.add_argument(
@@ -198,8 +198,8 @@ def parse_args():
         help="Poll interval in seconds",
     )
     parser.add_argument(
-        "--vector-store-name",
-        default=os.environ.get("RAGAS_SCHEDULER_VECTOR_STORE_NAME", "rag-store"),
+        "--vector-store-base-name",
+        default=os.environ.get("RAGAS_SCHEDULER_VECTOR_STORE_BASE_NAME", "rag-store"),
         help="Base name for vector stores (provider ID will be appended)",
     )
     parser.add_argument(
@@ -309,7 +309,7 @@ def main():
 
     created = []
     for provider, retrieval_mode in schedule_specs:
-        vector_store_name = f"{args.vector_store_name}-{provider}"
+        vector_store_name = f"{args.vector_store_base_name}-{provider}"
         job_name = f"ragas-{provider}-{retrieval_mode}"
 
         params = {

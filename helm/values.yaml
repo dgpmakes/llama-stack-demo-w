@@ -21,6 +21,7 @@ ragDefaults:
   chunkOverlapInTokens: 400
   enableRagas: true
   modelId: llama-4-scout-17b-16e-w4a16/Llama-4-Scout-17B-16E-W4A16
+  vectorStoreBaseName: rag-store
 
 lsdVectorStoreProviderId: milvus
 lsdVectorStoreName: rag-store
@@ -87,7 +88,7 @@ pipelines:
       gitContext: client/docs_pdf
       gitRef: next
       filenames: "2025_61-FR_INT.html.pdf, 2025_61-FR.html.pdf, 2025_102_SD.html.pdf, 2025-47-SA-Act.html.pdf, 2025-47-SA-R1.html.pdf"
-      vectorStoreName: rag-store
+      vectorStoreBaseName: {{ .Values.ragDefaults.vectorStoreBaseName }}
       vectorStoreProviderId: "milvus, milvus-remote, pgvector"
       ranker: default
       useGpu: false
@@ -99,7 +100,7 @@ pipelines:
     pipelineName: ragas-pipeline
     vectorStoreProviderIds: "milvus, milvus-remote, pgvector"
     experimentName: ragas-scoring-experiment
-    intervalMinutes: 60
+    intervalMinutes: 2 # Interval between runs in minutes
     params:
       gitRepo: alpha-hack-program/llama-stack-demo
       gitContext: materials/datasets
@@ -110,14 +111,14 @@ pipelines:
       retrieval_modes: "vector, hybrid"
       file_search_max_chunks: 5
       file_search_score_threshold: 0.7
-      file_search_max_tokens_per_chunk: 512
+      file_search_max_tokens_per_chunk: 0
       metrics: "answer_relevancy,faithfulness,context_precision,context_recall"
-      mode: "inline"
+      mode: "inline" # RAGAS evaluation mode (e.g. inline or remote)
       batch_size: 0
       timeout: 600
       max_wait_seconds: 900
       poll_interval: 5
-      vectorStoreName: rag-store
+      vectorStoreBaseName: {{ .Values.ragDefaults.vectorStoreBaseName }}
       vectorStoreProviderId: "milvus, milvus-remote, pgvector"
     
 # PostgreSQL configuration

@@ -52,27 +52,27 @@ def register_vector_store_and_files(
 
     # Validate parameters
     if not vector_store_name:
-        raise ValueError("VECTOR_STORE_NAME parameter must be set")
+        raise ValueError("vector_store_name parameter must be set")
     if not vector_store_provider_id:
-        raise ValueError("VECTOR_STORE_PROVIDER_ID parameter must be set")
+        raise ValueError("vector_store_provider_id parameter must be set")
     if not git_repo:
-        raise ValueError("GIT_REPO parameter must be set")
+        raise ValueError("git_repo parameter must be set")
     if not git_context:
-        raise ValueError("GIT_CONTEXT parameter must be set")
+        raise ValueError("git_context parameter must be set")
     if not git_ref:
-        raise ValueError("GIT_REF parameter must be set")
+        raise ValueError("git_ref parameter must be set")
     if not filenames:
-        raise ValueError("FILENAMES parameter must be set")
+        raise ValueError("filenames parameter must be set")
     if not chunk_size_in_tokens:
-        raise ValueError("CHUNK_SIZE_IN_TOKENS parameter must be set")
+        raise ValueError("chunk_size_in_tokens parameter must be set")
     if not chunk_overlap_in_tokens:
-        raise ValueError("CHUNK_OVERLAP_IN_TOKENS parameter must be set")
+        raise ValueError("chunk_overlap_in_tokens parameter must be set")
     if not embedding_model:
-        raise ValueError("EMBEDDING_MODEL parameter must be set")
+        raise ValueError("embedding_model parameter must be set")
     if not embedding_dimension:
-        raise ValueError("EMBEDDING_DIMENSION parameter must be set")
+        raise ValueError("embedding_dimension parameter must be set")
     if not ranker:
-        raise ValueError("RANKER parameter must be set")
+        raise ValueError("ranker parameter must be set")
 
     # Read environment variables
     llama_stack_host: str = os.environ.get("LLAMA_STACK_HOST")

@@ -107,8 +107,8 @@ def parse_args():
         help="Comma-separated list of filenames to process"
     )
     parser.add_argument(
-        "--vector-store-name",
-        default=os.environ.get("PIPELINE_VECTOR_STORE_NAME", "rag-store"),
+        "--vector-store-base-name",
+        default=os.environ.get("PIPELINE_VECTOR_STORE_BASE_NAME", "rag-store"),
         help="Base name for vector stores (provider ID will be appended)"
     )
     parser.add_argument(
@@ -225,7 +225,7 @@ def main():
             "git_context": args.git_context,
             "git_ref": args.git_ref,
             "filenames": args.filenames,
-            "vector_store_name": f"{args.vector_store_name}-{provider}",
+            "vector_store_name": f"{args.vector_store_base_name}-{provider}",
             "vector_store_provider_id": provider,
             "embedding_model": args.embedding_model,
             "embedding_dimension": args.embedding_dimension,
