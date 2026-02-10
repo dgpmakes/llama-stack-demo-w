@@ -88,7 +88,6 @@ pipelines:
       gitContext: client/docs_pdf
       gitRef: next
       filenames: "2025_61-FR_INT.html.pdf, 2025_61-FR.html.pdf, 2025_102_SD.html.pdf, 2025-47-SA-Act.html.pdf, 2025-47-SA-R1.html.pdf"
-      vectorStoreBaseName: {{ .Values.ragDefaults.vectorStoreBaseName }}
       vectorStoreProviderId: "milvus, milvus-remote, pgvector"
       ranker: default
       useGpu: false
@@ -118,7 +117,6 @@ pipelines:
       timeout: 600
       max_wait_seconds: 900
       poll_interval: 5
-      vectorStoreBaseName: {{ .Values.ragDefaults.vectorStoreBaseName }}
       vectorStoreProviderId: "milvus, milvus-remote, pgvector"
     
 # PostgreSQL configuration

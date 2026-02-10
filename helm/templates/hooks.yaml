@@ -886,7 +886,7 @@ spec:
         - name: PIPELINE_FILENAMES
           value: {{ .Values.pipelines.runner.params.filenames | default "2025_61-FR_INT.html.pdf" | quote }}
         - name: PIPELINE_VECTOR_STORE_BASE_NAME
-          value: {{ .Values.pipelines.runner.params.vectorStoreBaseName | default .Values.ragDefaults.vectorStoreBaseName | default "rag-store" | quote }}
+          value: {{ .Values.ragDefaults.vectorStoreBaseName | default "rag-store" | quote }}
         - name: PIPELINE_EMBEDDING_MODEL
           value: {{ .Values.ragDefaults.embeddingModel.modelProvider }}/{{ .Values.ragDefaults.embeddingModel.providerModelId }}
         - name: PIPELINE_EMBEDDING_DIMENSION
@@ -1061,7 +1061,7 @@ spec:
         - name: RAGAS_SCHEDULER_POLL_INTERVAL
           value: {{ .Values.pipelines.scheduler.params.poll_interval | default 5 | toString | quote }}
         - name: RAGAS_SCHEDULER_VECTOR_STORE_BASE_NAME
-          value: {{ .Values.pipelines.scheduler.params.vectorStoreBaseName | default .Values.ragDefaults.vectorStoreBaseName | default "rag-store" | quote }}
+          value: {{ .Values.ragDefaults.vectorStoreBaseName | default "rag-store" | quote }}
         - name: RAGAS_SCHEDULER_MODEL_ID
           value: {{ .Values.ragDefaults.modelId | default .Values.pipelines.scheduler.params.model_id | default "llama-3-1-8b-w4a16/llama-3-1-8b-w4a16" | quote }}
         resources:
