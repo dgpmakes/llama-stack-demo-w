@@ -15,7 +15,7 @@ from vector_stores import search_vector_store, list_vector_stores
 
 def search_command(
     query: str,
-    vector_store_id: Optional[str] = None,
+    vector_store_name: Optional[str] = None,
     search_mode: str = "vector",
     max_results: int = 10,
     score_threshold: float = 0.8,
@@ -26,7 +26,7 @@ def search_command(
     
     Args:
         query: The search query
-        vector_store_id: ID of the vector store to search (if None, uses latest)
+        vector_store_name: Name of the vector store to search (if None, uses latest across all)
         max_results: Maximum number of results to return (default: 10)
         score_threshold: Minimum score threshold for results (default: 0.8)
         ranker: Ranker to use for scoring (default: "default")
@@ -39,17 +39,26 @@ def search_command(
     print(f"Connecting to LlamaStack at {host}:{port}")
     client = create_client(host=host, port=port, secure=secure)
     
-    # If no vector_store_id provided, get the latest one
-    if vector_store_id is None:
-        vector_stores_response = list_vector_stores(client)
-        # Convert paginated response to list
-        vector_stores = list(vector_stores_response)
-        if not vector_stores:
+    # Resolve vector store: by name (latest with that name) or latest overall
+    vector_stores = list(list_vector_stores(client, name=vector_store_name))
+    if not vector_stores:
+        if vector_store_name:
+            print(f"Error: No vector store found with name '{vector_store_name}'. Please run 'load' command first or check the name.")
+        else:
             print("Error: No vector stores found. Please run 'load' command first.")
-            sys.exit(1)
-        # Use the most recently created vector store
-        vector_store_id = vector_stores[-1].id
-        print(f"Using vector store: {vector_store_id}")
+        sys.exit(1)
+    # Sort by creation time (newest first); fall back to list order if created_at missing or sort fails
+    def _created_at_key(vs):
+        created = getattr(vs, "created_at", None)
+        return (0, None) if created is None else (1, created)
+
+    try:
+        vector_stores.sort(key=_created_at_key, reverse=True)
+    except (TypeError, ValueError):
+        pass
+    vector_store = vector_stores[0]
+    vector_store_id = vector_store.id
+    print(f"Using vector store: {vector_store.name} (id: {vector_store_id})")
     
     # Perform search
     print(f"\nSearching for: '{query}'")

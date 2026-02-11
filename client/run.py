@@ -4,7 +4,7 @@ CLI tool for managing RAG operations with LlamaStack.
 
 Usage:
     python run.py load
-    python run.py search --query "your query" [--vector-store-id ID] [--max-results N]
+    python run.py search --query "your query" [--vector-store-name NAME] [--max-results N]
 """
 
 import argparse
@@ -55,7 +55,7 @@ Examples:
   # Search the vector store
   python run.py search --query "Tell me about taxes"
   python run.py search --query "What is the capital?" --max-results 5
-  python run.py search --query "Investment info" --vector-store-id my-store-id
+  python run.py search --query "Investment info" --vector-store-name rag-store
   
   # Run agent commands
   python run.py agent --agent-type default --input "What is the weather?"
@@ -97,10 +97,10 @@ Examples:
         help="The search query"
     )
     search_parser.add_argument(
-        "--vector-store-id",
+        "--vector-store-name",
         type=str,
         default=None,
-        help="ID of the vector store to search (if not provided, uses the latest)"
+        help="Name of the vector store to search (if not provided, uses the latest)"
     )
     search_parser.add_argument(
         "--max-results",
@@ -258,7 +258,7 @@ Examples:
             logger.debug("Searching the vector store for relevant documents...")
             search_command(
                 query=args.query,
-                vector_store_id=args.vector_store_id,
+                vector_store_name=args.vector_store_name,
                 search_mode=args.search_mode,
                 max_results=args.max_results,
                 score_threshold=args.score_threshold,

@@ -82,7 +82,7 @@ python run.py search --query "Tell me about taxes"
 python run.py search --query "What is the capital?" --max-results 5
 
 # Search specific vector store
-python run.py search --query "Investment info" --vector-store-id my-store-id
+python run.py search --query "Investment info" --vector-store-name rag-store
 
 # Advanced search with custom scoring
 python run.py search \
@@ -95,7 +95,7 @@ python run.py search \
 ### Search Command Options
 
 - `--query`: (Required) The search query text
-- `--vector-store-id`: ID of the vector store to search (default: uses the latest)
+- `--vector-store-name`: Name of the vector store to search (default: uses the latest)
 - `--max-results`: Maximum number of results to return (default: 10)
 - `--score-threshold`: Minimum score threshold for results (default: 0.8)
 - `--ranker`: Ranker to use for scoring (default: "default")
