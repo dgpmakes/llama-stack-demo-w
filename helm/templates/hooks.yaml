@@ -264,39 +264,40 @@ spec:
           
           echo "✓ Apps domain: $APPS_DOMAIN"
           
-          # Check if the ConfigMap exists
+          # Ensure ConfigMap exists (create empty if missing; tolerate race with another install/upgrade)
           echo "Checking if ConfigMap exists..."
           if ! oc get configmap "$CONFIGMAP_NAME" -n "$TARGET_NAMESPACE" &> /dev/null; then
-            echo "❌ ERROR: ConfigMap $CONFIGMAP_NAME not found in namespace $TARGET_NAMESPACE"
-            exit 1
+            echo "ConfigMap $CONFIGMAP_NAME not found; creating empty ConfigMap..."
+            if oc create configmap "$CONFIGMAP_NAME" -n "$TARGET_NAMESPACE" --from-literal=_init=1 2>/dev/null; then
+              oc patch configmap "$CONFIGMAP_NAME" -n "$TARGET_NAMESPACE" --type=json -p '[{"op": "remove", "path": "/data/_init"}]'
+            else
+              # AlreadyExists (another process created it) or other error
+              if ! oc get configmap "$CONFIGMAP_NAME" -n "$TARGET_NAMESPACE" &> /dev/null; then
+                echo "❌ ERROR: Could not create or find ConfigMap $CONFIGMAP_NAME"
+                exit 1
+              fi
+              echo "  (ConfigMap was created by another process)"
+            fi
           fi
           
-          echo "✓ Found ConfigMap: $CONFIGMAP_NAME"
+          echo "✓ ConfigMap $CONFIGMAP_NAME ready"
           
-          # Get the current ConfigMap data as YAML
-          echo "Fetching ConfigMap data..."
-          TEMP_FILE="/tmp/configmap-data.yaml"
-          oc get configmap "$CONFIGMAP_NAME" -n "$TARGET_NAMESPACE" -o yaml > "$TEMP_FILE"
-          
-          echo "Original ConfigMap data section:"
-          grep -A 100 "^data:" "$TEMP_FILE" | head -20
-          
-          # Create a patched version using sed
+          # Patch each MCP server entry with the public URL using oc patch
           echo ""
-          echo "Patching URLs in ConfigMap..."
-          # Pattern: http://<host>.<namespace>:8000 -> https://<host>-<namespace>.<apps_domain>
-          
-          # Create the patched file
-          PATCHED_FILE="/tmp/configmap-patched.yaml"
-          sed -E "s|http://([^.]+)\\.${SOURCE_NAMESPACE}:8000|https://\\1-${SOURCE_NAMESPACE}.${APPS_DOMAIN}|g" "$TEMP_FILE" > "$PATCHED_FILE"
-          
-          echo "Patched ConfigMap data section:"
-          grep -A 100 "^data:" "$PATCHED_FILE" | head -20
-          
-          # Apply the patched ConfigMap
-          echo ""
-          echo "Applying patched ConfigMap..."
-          oc apply -f "$PATCHED_FILE" -n "$TARGET_NAMESPACE"
+          echo "Patching MCP server entries in ConfigMap..."
+          {{- range .Values.mcpServers }}
+          SERVER_KEY="{{ .id }}-MCP-Server"
+          SERVER_URL="https://{{ .host }}-$SOURCE_NAMESPACE.$APPS_DOMAIN{{ .uri }}"
+          SERVER_DESC="{{ .description | default "" }}"
+          SERVER_TRANSPORT="{{ .mcp_transport }}"
+          # Build JSON value in same multi-line format as ConfigMap template (| block)
+          ESCAPED_DESC=$(echo "$SERVER_DESC" | sed 's/\\/\\\\/g; s/"/\\"/g')
+          INNER_STR=$(printf '{\n    "url": "%s",\n    "description": "%s",\n    "transport": "%s"\n}' "$SERVER_URL" "$ESCAPED_DESC" "$SERVER_TRANSPORT")
+          INNER_ESC=$(echo "$INNER_STR" | sed 's/\\/\\\\/g; s/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+          PATCH=$(printf '{"data":{"%s":"%s"}}' "$SERVER_KEY" "$INNER_ESC")
+          echo "  Patching $SERVER_KEY..."
+          oc patch configmap "$CONFIGMAP_NAME" -n "$TARGET_NAMESPACE" --type=merge -p "$PATCH"
+          {{- end }}
           
           echo "✓ Successfully patched ConfigMap $CONFIGMAP_NAME"
           
@@ -346,10 +347,14 @@ metadata:
     "helm.sh/hook-weight": "0"
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
 rules:
+# create requires a rule without resourceNames (create does not apply to an existing resource)
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create"]
 - apiGroups: [""]
   resources: ["configmaps"]
   resourceNames: ["gen-ai-aa-mcp-servers"]
-  verbs: ["get", "patch", "update"]
+  verbs: ["get", "list", "patch", "update"]
 ---
 # RoleBinding in redhat-ods-applications namespace
 apiVersion: rbac.authorization.k8s.io/v1
