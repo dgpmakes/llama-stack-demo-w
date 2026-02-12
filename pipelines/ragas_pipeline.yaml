@@ -325,16 +325,86 @@ deploymentSpec:
           \ Min score for returned results (0\u20131)\n        file_search_max_tokens_per_chunk:\
           \ Max tokens per chunk in results\n    \"\"\"\n    import json\n    import\
           \ os\n    from typing import Any, Dict, List\n\n    import httpx\n    from\
-          \ llama_stack_client import LlamaStackClient\n\n    llama_stack_host = os.environ.get(\"\
-          LLAMA_STACK_HOST\")\n    llama_stack_port = os.environ.get(\"LLAMA_STACK_PORT\"\
-          )\n    llama_stack_secure = os.environ.get(\"LLAMA_STACK_SECURE\", \"\"\
-          ).lower() in (\"true\", \"1\", \"yes\")\n\n    print(f\"LLAMA_STACK_HOST:\
-          \ {llama_stack_host}\")\n    print(f\"LLAMA_STACK_PORT: {llama_stack_port}\"\
-          )\n    print(f\"LLAMA_STACK_SECURE: {llama_stack_secure}\")\n\n    if not\
-          \ llama_stack_host:\n        raise ValueError(\"LLAMA_STACK_HOST environment\
-          \ variable must be set\")\n    if not llama_stack_port:\n        raise ValueError(\"\
-          LLAMA_STACK_PORT environment variable must be set\")\n\n    base_url = f\"\
-          {'https' if llama_stack_secure else 'http'}://{llama_stack_host}:{llama_stack_port}\"\
+          \ llama_stack_client import LlamaStackClient\n\n    def _serialize_for_json(val:\
+          \ Any) -> Any:\n        \"\"\"Convert a value to something JSON-serializable.\"\
+          \"\"\n        if val is None or isinstance(val, (bool, int, float, str)):\n\
+          \            return val\n        if isinstance(val, (dict, list)):\n   \
+          \         return val\n        if hasattr(val, \"__dict__\"):\n         \
+          \   return {k: _serialize_for_json(v) for k, v in val.__dict__.items()}\n\
+          \        return str(val)\n\n    def _extract_tool_calls(response: Any) ->\
+          \ List[Dict[str, Any]]:\n        \"\"\"Extract tool calls from Llama Stack\
+          \ response (output list, then turns or tool_calls). Returns list of {tool_name,\
+          \ arguments, response}.\"\"\"\n        out: List[Dict[str, Any]] = []\n\
+          \        if hasattr(response, \"output\") and isinstance(response.output,\
+          \ list):\n            for item in response.output:\n                type_\
+          \ = getattr(item, \"type\", None)\n                if type_ == \"file_search_call\"\
+          :\n                    queries = getattr(item, \"queries\", None) or []\n\
+          \                    results = getattr(item, \"results\", None) or []\n\
+          \                    result_texts = [getattr(r, \"text\", \"\") or \"\"\
+          \ for r in results]\n                    out.append({\n                \
+          \        \"tool_name\": \"file_search\",\n                        \"arguments\"\
+          : {\"queries\": list(queries)},\n                        \"response\": result_texts,\n\
+          \                    })\n                elif type_ and \"mcp\" in str(type_).lower()\
+          \ and type_ != \"mcp_list_tools\":\n                    name = getattr(item,\
+          \ \"tool_name\", None) or getattr(item, \"name\", None) or getattr(item,\
+          \ \"server_label\", None) or \"mcp\"\n                    args = getattr(item,\
+          \ \"arguments\", None) or getattr(item, \"args\", None) or {}\n        \
+          \            # Llama Stack MCP call uses \"output\" for the tool result\
+          \ (not \"response\" or \"result\")\n                    resp = getattr(item,\
+          \ \"output\", None) or getattr(item, \"response\", None) or getattr(item,\
+          \ \"result\", None)\n                    if not isinstance(args, dict):\n\
+          \                        try:\n                            args = json.loads(args)\
+          \ if isinstance(args, str) else {}\n                        except Exception:\n\
+          \                            args = {} if args is None else {\"raw\": str(args)}\n\
+          \                    out.append({\"tool_name\": str(name), \"arguments\"\
+          : args, \"response\": _serialize_for_json(resp)})\n            if out:\n\
+          \                return out\n        if hasattr(response, \"turns\") and\
+          \ response.turns:\n            for turn in response.turns:\n           \
+          \     if hasattr(turn, \"tool_calls\") and turn.tool_calls:\n          \
+          \          for tc in turn.tool_calls:\n                        name = getattr(tc,\
+          \ \"tool_name\", None) or (tc.__dict__.get(\"tool_name\") if hasattr(tc,\
+          \ \"__dict__\") else \"unknown\")\n                        args = getattr(tc,\
+          \ \"arguments\", None) or (tc.__dict__.get(\"arguments\") if hasattr(tc,\
+          \ \"__dict__\") else {})\n                        resp = getattr(tc, \"\
+          response\", None) or (tc.__dict__.get(\"response\") if hasattr(tc, \"__dict__\"\
+          ) else None)\n                        if isinstance(args, dict):\n     \
+          \                       pass\n                        else:\n          \
+          \                  try:\n                                args = json.loads(args)\
+          \ if isinstance(args, str) else (args or {})\n                         \
+          \   except Exception:\n                                args = {} if args\
+          \ is None else {\"raw\": str(args)}\n                        out.append({\"\
+          tool_name\": name, \"arguments\": args, \"response\": _serialize_for_json(resp)})\n\
+          \                if hasattr(turn, \"steps\") and turn.steps:\n         \
+          \           for step in turn.steps:\n                        name = getattr(step,\
+          \ \"tool_name\", None) or (getattr(step, \"__dict__\", {}).get(\"tool_name\"\
+          ) or \"unknown\")\n                        args = getattr(step, \"tool_args\"\
+          , None) or (getattr(step, \"__dict__\", {}).get(\"tool_args\") or {})\n\
+          \                        resp = getattr(step, \"tool_response\", None) or\
+          \ (getattr(step, \"__dict__\", {}).get(\"tool_response\"))\n           \
+          \             if not isinstance(args, dict):\n                         \
+          \   try:\n                                args = json.loads(args) if isinstance(args,\
+          \ str) else {}\n                            except Exception:\n        \
+          \                        args = {} if args is None else {\"raw\": str(args)}\n\
+          \                        out.append({\"tool_name\": name, \"arguments\"\
+          : args, \"response\": _serialize_for_json(resp)})\n        elif hasattr(response,\
+          \ \"tool_calls\") and response.tool_calls:\n            for tc in response.tool_calls:\n\
+          \                d = tc.__dict__ if hasattr(tc, \"__dict__\") else {}\n\
+          \                name = d.get(\"tool_name\", \"unknown\")\n            \
+          \    args = d.get(\"arguments\", {})\n                if not isinstance(args,\
+          \ dict):\n                    try:\n                        args = json.loads(args)\
+          \ if isinstance(args, str) else {}\n                    except Exception:\n\
+          \                        args = {} if args is None else {\"raw\": str(args)}\n\
+          \                out.append({\"tool_name\": name, \"arguments\": args, \"\
+          response\": _serialize_for_json(d.get(\"response\"))})\n        return out\n\
+          \n    llama_stack_host = os.environ.get(\"LLAMA_STACK_HOST\")\n    llama_stack_port\
+          \ = os.environ.get(\"LLAMA_STACK_PORT\")\n    llama_stack_secure = os.environ.get(\"\
+          LLAMA_STACK_SECURE\", \"\").lower() in (\"true\", \"1\", \"yes\")\n\n  \
+          \  print(f\"LLAMA_STACK_HOST: {llama_stack_host}\")\n    print(f\"LLAMA_STACK_PORT:\
+          \ {llama_stack_port}\")\n    print(f\"LLAMA_STACK_SECURE: {llama_stack_secure}\"\
+          )\n\n    if not llama_stack_host:\n        raise ValueError(\"LLAMA_STACK_HOST\
+          \ environment variable must be set\")\n    if not llama_stack_port:\n  \
+          \      raise ValueError(\"LLAMA_STACK_PORT environment variable must be\
+          \ set\")\n\n    base_url = f\"{'https' if llama_stack_secure else 'http'}://{llama_stack_host}:{llama_stack_port}\"\
           \n    print(f\"LLAMA_STACK_BASE_URL: {base_url}\")\n\n    http_client =\
           \ httpx.Client(verify=False, timeout=timeout)\n    client = LlamaStackClient(base_url=base_url,\
           \ http_client=http_client)\n\n    print(f\"\\n[LOAD] Loading base dataset\
@@ -386,30 +456,41 @@ deploymentSpec:
           ) and isinstance(output_item.results, list):\n                        for\
           \ result in output_item.results:\n                            if hasattr(result,\
           \ \"text\") and result.text:\n                                contexts.append(result.text)\n\
-          \n            ragas_entry = {\n                \"id\": question_id,\n  \
-          \              \"question\": question,\n                \"answer\": answer,\n\
-          \                \"contexts\": contexts if contexts else [\"No context retrieved\"\
-          ],\n                \"ground_truth\": ground_truth,\n            }\n   \
-          \         if \"difficulty\" in item:\n                ragas_entry[\"difficulty\"\
-          ] = item[\"difficulty\"]\n\n            ragas_dataset.append(ragas_entry)\n\
-          \            print(f\"  [OK] Answer generated ({len(contexts)} contexts\
-          \ retrieved)\")\n\n        except Exception as e:\n            error_count\
-          \ += 1\n            errors.append(f\"{question_id}: {str(e)}\")\n      \
-          \      print(f\"  [ERROR] Error processing {question_id}: {e}\")\n     \
-          \       ragas_dataset.append({\n                \"id\": question_id,\n \
-          \               \"question\": question,\n                \"answer\": f\"\
-          ERROR: {str(e)}\",\n                \"contexts\": [],\n                \"\
-          ground_truth\": ground_truth,\n                \"difficulty\": item.get(\"\
-          difficulty\", \"unknown\"),\n                \"error\": True,\n        \
-          \    })\n\n    total_questions = len(dataset)\n    success_count = total_questions\
-          \ - error_count\n\n    print(f\"\\n[SUMMARY] RAGAS dataset generation summary:\"\
-          )\n    print(f\"   Total questions: {total_questions}\")\n    print(f\"\
-          \   Successful: {success_count}\")\n    print(f\"   Failed: {error_count}\"\
-          )\n\n    if error_count == total_questions:\n        raise ValueError(\n\
-          \            f\"All {total_questions} questions failed to process. \"\n\
-          \            f\"First error: {errors[0] if errors else 'Unknown'}\"\n  \
-          \      )\n    if error_count > total_questions / 2:\n        raise ValueError(\n\
-          \            f\"Too many questions failed: {error_count}/{total_questions}\
+          \n            tool_calls = _extract_tool_calls(response)\n            ragas_entry\
+          \ = {\n                \"id\": question_id,\n                \"question\"\
+          : question,\n                \"answer\": answer,\n                \"contexts\"\
+          : contexts if contexts else [],\n                \"ground_truth\": ground_truth,\n\
+          \            }\n            if tool_calls:\n                ragas_entry[\"\
+          tool_calls\"] = tool_calls\n                # Append non-file_search tool\
+          \ call responses as contexts for RAGAS\n                for tc in tool_calls:\n\
+          \                    if tc.get(\"tool_name\") != \"file_search\":\n    \
+          \                    resp = tc.get(\"response\")\n                     \
+          \   if resp is not None:\n                            ctx = resp if isinstance(resp,\
+          \ str) else json.dumps(resp, ensure_ascii=False)\n                     \
+          \       ragas_entry[\"contexts\"].append(ctx)\n            print(f\"  [OK]\
+          \ Answer generated ({len(ragas_entry['contexts'])} contexts, {len(tool_calls)}\
+          \ tool call(s))\")\n            if \"difficulty\" in item:\n           \
+          \     ragas_entry[\"difficulty\"] = item[\"difficulty\"]\n            if\
+          \ item.get(\"expected_tool\"):\n                ragas_entry[\"expected_tool\"\
+          ] = item[\"expected_tool\"]\n            if item.get(\"expected_tool_parameters\"\
+          ):\n                ragas_entry[\"expected_tool_parameters\"] = item[\"\
+          expected_tool_parameters\"]\n\n            ragas_dataset.append(ragas_entry)\n\
+          \n        except Exception as e:\n            error_count += 1\n       \
+          \     errors.append(f\"{question_id}: {str(e)}\")\n            print(f\"\
+          \  [ERROR] Error processing {question_id}: {e}\")\n            ragas_dataset.append({\n\
+          \                \"id\": question_id,\n                \"question\": question,\n\
+          \                \"answer\": f\"ERROR: {str(e)}\",\n                \"contexts\"\
+          : [],\n                \"ground_truth\": ground_truth,\n               \
+          \ \"difficulty\": item.get(\"difficulty\", \"unknown\"),\n             \
+          \   \"error\": True,\n            })\n\n    total_questions = len(dataset)\n\
+          \    success_count = total_questions - error_count\n\n    print(f\"\\n[SUMMARY]\
+          \ RAGAS dataset generation summary:\")\n    print(f\"   Total questions:\
+          \ {total_questions}\")\n    print(f\"   Successful: {success_count}\")\n\
+          \    print(f\"   Failed: {error_count}\")\n\n    if error_count == total_questions:\n\
+          \        raise ValueError(\n            f\"All {total_questions} questions\
+          \ failed to process. \"\n            f\"First error: {errors[0] if errors\
+          \ else 'Unknown'}\"\n        )\n    if error_count > total_questions / 2:\n\
+          \        raise ValueError(\n            f\"Too many questions failed: {error_count}/{total_questions}\
           \ ({error_count*100//total_questions}%). \"\n            f\"Errors: {errors[:5]}{'...'\
           \ if len(errors) > 5 else ''}\"\n        )\n    if error_count > 0:\n  \
           \      print(f\"   [WARN] Warning: {error_count} question(s) failed but\
@@ -639,27 +720,30 @@ deploymentSpec:
           error\") or entry.get(\"answer\", \"\").startswith(\"ERROR:\"):\n      \
           \      skipped_count += 1\n            print(f\"   [SKIP] Skipping error\
           \ entry: {entry.get('id', 'unknown')}\")\n            continue\n       \
-          \ if not entry.get(\"contexts\") or entry[\"contexts\"] == [\"No context\
-          \ retrieved\"]:\n            skipped_count += 1\n            print(f\" \
-          \  [SKIP] Skipping entry with no contexts: {entry.get('id', 'unknown')}\"\
-          )\n            continue\n\n        ragas_entry = {\n            \"user_input\"\
+          \ # Include entries with no contexts (e.g. tool-only answers): use empty\
+          \ list.\n        # Context metrics (context_precision, context_recall) may\
+          \ be 0 for those rows.\n        raw_contexts = entry.get(\"contexts\") or\
+          \ []\n        if raw_contexts == [\"No context retrieved\"]:\n         \
+          \   raw_contexts = []\n        if not raw_contexts:\n            print(f\"\
+          \   [INFO] Entry with no retrieved contexts (tool-only?): {entry.get('id',\
+          \ 'unknown')}\")\n\n        ragas_entry = {\n            \"user_input\"\
           : entry[\"question\"],\n            \"response\": entry[\"answer\"],\n \
-          \           \"retrieved_contexts\": entry[\"contexts\"],\n        }\n  \
-          \      if \"ground_truth\" in entry and entry[\"ground_truth\"]:\n     \
-          \       ragas_entry[\"reference\"] = entry[\"ground_truth\"]\n        ragas_data.append(ragas_entry)\n\
+          \           \"retrieved_contexts\": raw_contexts,\n        }\n        if\
+          \ \"ground_truth\" in entry and entry[\"ground_truth\"]:\n            ragas_entry[\"\
+          reference\"] = entry[\"ground_truth\"]\n        ragas_data.append(ragas_entry)\n\
           \n    if skipped_count > 0:\n        print(f\"   [WARN] Skipped {skipped_count}\
           \ invalid entries\")\n    print(f\"[OK] Converted {len(ragas_data)} valid\
           \ entries for evaluation\")\n\n    if len(ragas_data) == 0:\n        raise\
           \ ValueError(\n            f\"No valid entries for RAGAS evaluation. \"\n\
-          \            f\"All {len(ragas_dataset)} entries were invalid (errors or\
-          \ missing contexts).\"\n        )\n\n    provider_id = \"trustyai_ragas_inline\"\
-          \ if mode == \"inline\" else \"trustyai_ragas_remote\"\n\n    if batch_size\
-          \ and batch_size > 0:\n        batches = [ragas_data[i : i + batch_size]\
-          \ for i in range(0, len(ragas_data), batch_size)]\n    else:\n        batches\
-          \ = [ragas_data]\n\n    print(f\"[START] Starting evaluation in {len(batches)}\
-          \ batch(es) ({mode.upper()} mode)...\")\n\n    base_timestamp = datetime.now().strftime(\"\
-          %Y%m%d_%H%M%S\")\n    aggregated_scores = {metric: [] for metric in metrics_list}\n\
-          \n    all_results = {\n        \"metrics\": {},\n        \"individual_scores\"\
+          \            f\"All {len(ragas_dataset)} entries were invalid (errors).\"\
+          \n        )\n\n    provider_id = \"trustyai_ragas_inline\" if mode == \"\
+          inline\" else \"trustyai_ragas_remote\"\n\n    if batch_size and batch_size\
+          \ > 0:\n        batches = [ragas_data[i : i + batch_size] for i in range(0,\
+          \ len(ragas_data), batch_size)]\n    else:\n        batches = [ragas_data]\n\
+          \n    print(f\"[START] Starting evaluation in {len(batches)} batch(es) ({mode.upper()}\
+          \ mode)...\")\n\n    base_timestamp = datetime.now().strftime(\"%Y%m%d_%H%M%S\"\
+          )\n    aggregated_scores = {metric: [] for metric in metrics_list}\n\n \
+          \   all_results = {\n        \"metrics\": {},\n        \"individual_scores\"\
           : {},\n        \"generations\": [],\n        \"failures\": [],\n    }\n\n\
           \    for batch_idx, batch in enumerate(batches):\n        print(f\"\\n[BATCH]\
           \ Processing Batch {batch_idx+1}/{len(batches)} (Size: {len(batch)})\")\n\

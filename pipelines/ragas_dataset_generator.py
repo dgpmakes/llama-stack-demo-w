@@ -321,12 +321,19 @@ def generate_ragas_dataset(
                 "id": question_id,
                 "question": question,
                 "answer": answer,
-                "contexts": contexts if contexts else ["No context retrieved"],
+                "contexts": contexts if contexts else [],
                 "ground_truth": ground_truth,
             }
             if tool_calls:
                 ragas_entry["tool_calls"] = tool_calls
-            print(f"  [OK] Answer generated ({len(contexts)} contexts, {len(tool_calls)} tool call(s))")
+                # Append non-file_search tool call responses as contexts for RAGAS
+                for tc in tool_calls:
+                    if tc.get("tool_name") != "file_search":
+                        resp = tc.get("response")
+                        if resp is not None:
+                            ctx = resp if isinstance(resp, str) else json.dumps(resp, ensure_ascii=False)
+                            ragas_entry["contexts"].append(ctx)
+            print(f"  [OK] Answer generated ({len(ragas_entry['contexts'])} contexts, {len(tool_calls)} tool call(s))")
             if "difficulty" in item:
                 ragas_entry["difficulty"] = item["difficulty"]
             if item.get("expected_tool"):
