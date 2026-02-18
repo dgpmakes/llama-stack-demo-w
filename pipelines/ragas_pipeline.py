@@ -596,9 +596,289 @@ def generate_ragas_dataset(
     print(f"[OK] Written RAGAS dataset to artifact: {ragas_dataset_output.path}")
 
 
+def _run_ragas_evaluation_direct_impl(
+    ragas_dataset,
+    metrics_list,
+    model_id,
+    embedding_model_id,
+    batch_size=None,
+    show_progress=True,
+):
+    """
+    Same logic as run_ragas_evaluation_direct in ragas_dataset_eval_direct.py.
+    Uses RAGAS library directly with Llama Stack LLM and embeddings.
+    """
+    import math
+    from datetime import datetime
+    from typing import Any, Dict, List
+
+    def _apply_eval_log_level():
+        import logging
+        import os
+        name = os.environ.get("RAGAS_EVAL_LOG_LEVEL", "").strip().upper()
+        if not name:
+            return
+        level = getattr(logging, name, None)
+        if level is None:
+            return
+        for logger_name in ("httpx", "httpcore"):
+            logging.getLogger(logger_name).setLevel(level)
+
+    def _context_from_json_like(raw):
+        if raw is None:
+            return ""
+        import json
+        s = raw if isinstance(raw, str) else json.dumps(raw, ensure_ascii=False)
+        s = s.strip()
+        if not s:
+            return ""
+        try:
+            obj = json.loads(s)
+        except (json.JSONDecodeError, TypeError):
+            return s
+        if isinstance(obj, dict):
+            lines = []
+            for k, v in obj.items():
+                if isinstance(v, (dict, list)):
+                    v = json.dumps(v, ensure_ascii=False)
+                lines.append(f"{k}: {v}")
+            return "\n".join(lines)
+        if isinstance(obj, list):
+            return "\n".join(
+                str(x) if not isinstance(x, (dict, list)) else json.dumps(x, ensure_ascii=False)
+                for x in obj
+            )
+        return s
+
+    def convert_to_evaluation_format(ragas_dataset_inner):
+        ragas_data = []
+        for entry in ragas_dataset_inner:
+            if entry.get("error"):
+                continue
+            answer = entry.get("answer", "")
+            if not answer or (isinstance(answer, str) and answer.startswith("ERROR:")):
+                continue
+            question = entry.get("question", "")
+            if not question:
+                continue
+            raw_contexts = entry.get("contexts") or []
+            if raw_contexts == ["No context retrieved"]:
+                raw_contexts = []
+            retrieved_contexts = [_context_from_json_like(c) for c in raw_contexts]
+            ragas_entry = {
+                "user_input": question,
+                "response": answer,
+                "retrieved_contexts": retrieved_contexts,
+            }
+            if "ground_truth" in entry and entry["ground_truth"]:
+                ragas_entry["reference"] = entry["ground_truth"]
+            ragas_data.append(ragas_entry)
+        return ragas_data
+
+    def _get_llama_stack_client(timeout=600):
+        import os
+        import httpx
+        from llama_stack_client import LlamaStackClient
+        host = os.environ.get("LLAMA_STACK_HOST")
+        port = os.environ.get("LLAMA_STACK_PORT")
+        secure = os.environ.get("LLAMA_STACK_SECURE", "").lower() in ("true", "1", "yes")
+        if not host:
+            raise ValueError("LLAMA_STACK_HOST must be set when using Llama Stack for evaluation")
+        if not port:
+            raise ValueError("LLAMA_STACK_PORT must be set when using Llama Stack for evaluation")
+        base_url = f"{'https' if secure else 'http'}://{host}:{port}"
+        http_client = httpx.Client(verify=False, timeout=timeout)
+        return LlamaStackClient(base_url=base_url, http_client=http_client)
+
+    class _LlamaStackEmbeddings:
+        def __init__(self, client, model_id):
+            self._client = client
+            self._model_id = model_id
+
+        def embed_documents(self, texts):
+            return [self._embed_one(t) for t in texts]
+
+        def embed_query(self, text):
+            return self._embed_one(text)
+
+        def _embed_one(self, text):
+            resp = self._client.embeddings.create(model=self._model_id, input=text)
+            if hasattr(resp, "data") and resp.data:
+                return getattr(resp.data[0], "embedding", resp.data[0])
+            if hasattr(resp, "embeddings") and resp.embeddings:
+                return resp.embeddings[0] if isinstance(resp.embeddings[0], list) else getattr(resp.embeddings[0], "embedding", resp.embeddings[0])
+            if isinstance(resp, list):
+                return resp
+            raise RuntimeError(f"Unexpected embeddings response shape: {type(resp)}")
+
+    def _get_chat_openai_for_llama_stack(model_id_inner):
+        import os
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError as e:
+            raise ImportError(
+                "langchain-openai is required for Llama Stack LLM. pip install langchain-openai"
+            ) from e
+        host = os.environ.get("LLAMA_STACK_HOST")
+        port = os.environ.get("LLAMA_STACK_PORT")
+        secure = os.environ.get("LLAMA_STACK_SECURE", "").lower() in ("true", "1", "yes")
+        if not host or not port:
+            raise ValueError("LLAMA_STACK_HOST and LLAMA_STACK_PORT must be set")
+        protocol = "https" if secure else "http"
+        base_url = f"{protocol}://{host}:{port}/v1"
+        api_key = os.environ.get("API_KEY", "fake")
+        return ChatOpenAI(
+            model=model_id_inner,
+            api_key=api_key,
+            base_url=base_url,
+            temperature=0.0,
+        )
+
+    def _get_llama_stack_llm_and_embeddings(model_id_inner, embedding_model_id_inner, timeout=600):
+        client = _get_llama_stack_client(timeout=timeout)
+        llm = _get_chat_openai_for_llama_stack(model_id_inner)
+        embeddings = _LlamaStackEmbeddings(client, embedding_model_id_inner)
+        return llm, embeddings
+
+    def _import_ragas():
+        try:
+            from ragas import EvaluationDataset, SingleTurnSample, evaluate
+            from ragas.metrics._faithfulness import faithfulness
+            from ragas.metrics._answer_relevance import answer_relevancy
+            from ragas.metrics._context_precision import context_precision
+            from ragas.metrics._context_recall import context_recall
+            return {
+                "EvaluationDataset": EvaluationDataset,
+                "SingleTurnSample": SingleTurnSample,
+                "evaluate": evaluate,
+                "metrics": {
+                    "faithfulness": faithfulness,
+                    "answer_relevancy": answer_relevancy,
+                    "context_precision": context_precision,
+                    "context_recall": context_recall,
+                },
+            }
+        except ImportError as e:
+            raise ImportError("ragas is required. pip install ragas") from e
+
+    def get_metric_objects(metrics_list_inner, ragas_metrics):
+        resolved = []
+        for name in metrics_list_inner:
+            name = name.strip().lower()
+            if name not in ragas_metrics:
+                raise ValueError(f"Unknown metric '{name}'. Available: {', '.join(ragas_metrics)}")
+            resolved.append(ragas_metrics[name])
+        return resolved
+
+    _apply_eval_log_level()
+    ragas_data = convert_to_evaluation_format(ragas_dataset)
+    skipped = len(ragas_dataset) - len(ragas_data)
+    if skipped:
+        print(f"[WARN] Skipped {skipped} invalid/error entries")
+    if not ragas_data:
+        has_questions = any(e.get("question") for e in ragas_dataset)
+        if has_questions and not any(e.get("answer") for e in ragas_dataset):
+            raise ValueError(
+                "No valid entries for RAGAS evaluation. Input looks like a base dataset "
+                "(has 'question' but no 'answer'). Generate a RAGAS dataset first."
+            )
+        raise ValueError(
+            "No valid entries for RAGAS evaluation. "
+            "All entries were invalid (error, ERROR: answer, or missing question/answer)."
+        )
+    print(f"[OK] {len(ragas_data)} entries to evaluate")
+
+    ragas = _import_ragas()
+    EvaluationDataset = ragas["EvaluationDataset"]
+    SingleTurnSample = ragas["SingleTurnSample"]
+    evaluate_fn = ragas["evaluate"]
+    ragas_metrics = ragas["metrics"]
+
+    metric_objects = get_metric_objects(metrics_list, ragas_metrics)
+    print(f"[METRICS] {', '.join(metrics_list)}")
+
+    if not (model_id and embedding_model_id):
+        raise ValueError(
+            "When using Llama Stack for RAGAS, both model_id and embedding_model_id are required."
+        )
+    print(f"[LLAMA-STACK] Using LLM: {model_id} (chat), embeddings: {embedding_model_id}")
+    llm, embeddings = _get_llama_stack_llm_and_embeddings(model_id, embedding_model_id)
+
+    samples = [SingleTurnSample(**entry) for entry in ragas_data]
+    eval_dataset = EvaluationDataset(samples=samples)
+    print("[START] Running RAGAS evaluate()...")
+
+    eval_kw = {
+        "metrics": metric_objects,
+        "show_progress": show_progress,
+        "batch_size": batch_size,
+    }
+    eval_kw["llm"] = llm
+    eval_kw["embeddings"] = embeddings
+
+    result = evaluate_fn(eval_dataset, **eval_kw)
+
+    scores_rows = result.scores
+    if not scores_rows:
+        raise RuntimeError("RAGAS evaluate() returned no scores")
+
+    final_metrics = {}
+    individual_scores = {m: [] for m in metrics_list}
+
+    for row in scores_rows:
+        for metric in metrics_list:
+            val = row.get(metric)
+            if val is not None and not (isinstance(val, float) and math.isnan(val)):
+                individual_scores[metric].append(float(val))
+
+    for metric in metrics_list:
+        vals = individual_scores[metric]
+        if vals:
+            final_metrics[metric] = sum(vals) / len(vals)
+        else:
+            final_metrics[metric] = float("nan")
+
+    base_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    formatted = {
+        "benchmark_id": f"ragas_direct_{base_timestamp}",
+        "timestamp": datetime.now().isoformat(),
+        "metrics": final_metrics,
+        "individual_scores": individual_scores,
+        "generations": [],
+        "failures": [],
+        "dataset_size": len(ragas_dataset),
+        "valid_entries": len(ragas_data),
+        "mode": "ragas_direct",
+        "model_id": model_id,
+        "embedding_model_id": embedding_model_id,
+    }
+
+    print("\n" + "=" * 70)
+    print("[RESULTS] RAGAS EVALUATION (direct)")
+    print("=" * 70)
+    print(f"Run:      {formatted['benchmark_id']}")
+    print(f"Dataset:  {formatted['dataset_size']} entries ({formatted['valid_entries']} evaluated)")
+    if formatted["metrics"]:
+        print("\n[METRICS]")
+        for metric, score in formatted["metrics"].items():
+            if isinstance(score, float) and math.isnan(score):
+                status, val = "[SKIP]", "N/A"
+            else:
+                val = f"{score:.4f}"
+                status = "[PASS]" if score > 0.8 else "[WARN]" if score > 0.6 else "[FAIL]"
+            print(f"  {status} {metric:25s}: {val}")
+    print("=" * 70)
+    return formatted
+
+
 @dsl.component(
     base_image=PYTORCH_IMAGE,
-    packages_to_install=["llama-stack-client==0.3.5", "httpx"],
+    packages_to_install=[
+        "llama-stack-client==0.3.5",
+        "httpx",
+        "ragas",
+        "langchain-openai",
+    ],
 )
 def run_ragas_evaluation(
     ragas_dataset_input: Input[Dataset],
@@ -607,57 +887,41 @@ def run_ragas_evaluation(
     metrics: str,
     evaluation_output_metrics: Output[Metrics],
     evaluation_results_output: Output[Dataset],
-    mode: str = "inline",
     batch_size: int = 0,
+    show_progress: bool = True,
     timeout: int = 600,
-    max_wait_seconds: int = 900,
-    poll_interval: int = 5,
 ):
     """
-    Run RAGAS evaluation on the generated dataset.
+    Run RAGAS evaluation on the generated dataset using the RAGAS library directly.
 
-    Reads RAGAS dataset artifact, converts to evaluation format (skipping error entries),
-    runs TrustyAI RAGAS evaluation via Llama Stack, and writes metrics and results to artifacts.
+    Same evaluation logic as run_ragas_evaluation_direct in ragas_dataset_eval_direct.py:
+    converts dataset with _context_from_json_like, uses RAGAS evaluate() with Llama Stack
+    LLM (ChatOpenAI at /v1) and Llama Stack embeddings.
 
     Args:
         ragas_dataset_input: Input artifact containing the RAGAS dataset JSON
-        model_id: LLM model identifier for scoring
+        model_id: LLM model identifier for scoring (judge)
         embedding_model_id: Embedding model identifier
         metrics: Comma-separated list of RAGAS metrics to compute
         evaluation_output_metrics: Kubeflow Metrics output for logging RAGAS metrics
         evaluation_results_output: Output artifact for the evaluation results JSON
-        mode: Evaluation mode - "inline" or "remote"
-        batch_size: Batch size for evaluation (0 = all at once)
-        timeout: Timeout in seconds for requests
-        max_wait_seconds: Maximum seconds to wait for evaluation job
-        poll_interval: Seconds between job status checks
+        batch_size: RAGAS evaluate() batch size (0 = None, no batching)
+        show_progress: Whether to show progress bar during evaluation
+        timeout: Timeout in seconds for Llama Stack client
     """
     import json
+    import math
     import os
-    import time
     from datetime import datetime
-
-    import httpx
-    from llama_stack_client import LlamaStackClient
 
     llama_stack_host = os.environ.get("LLAMA_STACK_HOST")
     llama_stack_port = os.environ.get("LLAMA_STACK_PORT")
-    llama_stack_secure = os.environ.get("LLAMA_STACK_SECURE", "").lower() in ("true", "1", "yes")
-
-    print(f"LLAMA_STACK_HOST: {llama_stack_host}")
-    print(f"LLAMA_STACK_PORT: {llama_stack_port}")
-    print(f"LLAMA_STACK_SECURE: {llama_stack_secure}")
-
     if not llama_stack_host:
         raise ValueError("LLAMA_STACK_HOST environment variable must be set")
     if not llama_stack_port:
         raise ValueError("LLAMA_STACK_PORT environment variable must be set")
-
-    base_url = f"{'https' if llama_stack_secure else 'http'}://{llama_stack_host}:{llama_stack_port}"
-    print(f"LLAMA_STACK_BASE_URL: {base_url}")
-
-    http_client = httpx.Client(verify=False, timeout=timeout)
-    client = LlamaStackClient(base_url=base_url, http_client=http_client)
+    print(f"LLAMA_STACK_HOST: {llama_stack_host}")
+    print(f"LLAMA_STACK_PORT: {llama_stack_port}")
 
     print(f"\n[LOAD] Loading RAGAS dataset from artifact: {ragas_dataset_input.path}")
     with open(ragas_dataset_input.path, "r", encoding="utf-8") as f:
@@ -666,265 +930,48 @@ def run_ragas_evaluation(
     print(f"[OK] Loaded {len(ragas_dataset)} entries")
 
     metrics_list = [m.strip() for m in metrics.split(",") if m.strip()]
-    print(f"[METRICS] Metrics to evaluate: {', '.join(metrics_list)}")
+    if not metrics_list:
+        raise ValueError("At least one metric required (metrics parameter).")
 
-    print("\n[CONVERT] Converting to RAGAS evaluation format...")
-    ragas_data = []
-    skipped_count = 0
-    for entry in ragas_dataset:
-        if entry.get("error") or entry.get("answer", "").startswith("ERROR:"):
-            skipped_count += 1
-            print(f"   [SKIP] Skipping error entry: {entry.get('id', 'unknown')}")
-            continue
-        # Include entries with no contexts (e.g. tool-only answers): use empty list.
-        # Context metrics (context_precision, context_recall) may be 0 for those rows.
-        raw_contexts = entry.get("contexts") or []
-        if raw_contexts == ["No context retrieved"]:
-            raw_contexts = []
-        if not raw_contexts:
-            print(f"   [INFO] Entry with no retrieved contexts (tool-only?): {entry.get('id', 'unknown')}")
+    batch_size_arg = None if (batch_size is None or batch_size <= 0) else batch_size
 
-        ragas_entry = {
-            "user_input": entry["question"],
-            "response": entry["answer"],
-            "retrieved_contexts": raw_contexts,
-        }
-        if "ground_truth" in entry and entry["ground_truth"]:
-            ragas_entry["reference"] = entry["ground_truth"]
-        ragas_data.append(ragas_entry)
+    results = _run_ragas_evaluation_direct_impl(
+        ragas_dataset=ragas_dataset,
+        metrics_list=metrics_list,
+        model_id=model_id,
+        embedding_model_id=embedding_model_id,
+        batch_size=batch_size_arg,
+        show_progress=show_progress,
+    )
 
-    if skipped_count > 0:
-        print(f"   [WARN] Skipped {skipped_count} invalid entries")
-    print(f"[OK] Converted {len(ragas_data)} valid entries for evaluation")
-
-    if len(ragas_data) == 0:
-        raise ValueError(
-            f"No valid entries for RAGAS evaluation. "
-            f"All {len(ragas_dataset)} entries were invalid (errors)."
-        )
-
-    provider_id = "trustyai_ragas_inline" if mode == "inline" else "trustyai_ragas_remote"
-
-    if batch_size and batch_size > 0:
-        batches = [ragas_data[i : i + batch_size] for i in range(0, len(ragas_data), batch_size)]
-    else:
-        batches = [ragas_data]
-
-    print(f"[START] Starting evaluation in {len(batches)} batch(es) ({mode.upper()} mode)...")
-
+    final_metrics = results["metrics"]
     base_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    aggregated_scores = {metric: [] for metric in metrics_list}
-
-    all_results = {
-        "metrics": {},
-        "individual_scores": {},
-        "generations": [],
-        "failures": [],
-    }
-
-    for batch_idx, batch in enumerate(batches):
-        print(f"\n[BATCH] Processing Batch {batch_idx+1}/{len(batches)} (Size: {len(batch)})")
-
-        # Unique per pipeline run (and per batch)
-        dataset_id = f"ragas_dataset_{datetime.now().isoformat()}_{batch_idx}"
-        benchmark_id = f"ragas_benchmark_{datetime.now().isoformat()}_{batch_idx}"
-
-        try:
-            print(f"[REGISTER] Registering dataset: {dataset_id}")
-            client.datasets.register(
-                dataset_id=dataset_id,
-                purpose="eval/question-answer",
-                source={"type": "rows", "rows": batch},
-            )
-            print(f"[OK] Dataset registered with {len(batch)} entries")
-
-            print(f"[REGISTER] Registering benchmark: {benchmark_id}")
-            client.benchmarks.register(
-                benchmark_id=benchmark_id,
-                dataset_id=dataset_id,
-                scoring_functions=metrics_list,
-                provider_id=provider_id,
-            )
-            print("[OK] Benchmark registered")
-
-            eval_candidate = {
-                "type": "model",
-                "model": model_id,
-                "sampling_params": {"strategy": {"type": "greedy"}, "max_tokens": 2048},
-            }
-            scoring_params = {}
-            for metric in metrics_list:
-                scoring_params[metric] = {"type": "basic", "aggregation_functions": ["average"]}
-            benchmark_config = {
-                "eval_candidate": eval_candidate,
-                "scoring_params": scoring_params,
-            }
-            extra_body = {
-                "provider_id": provider_id,
-                "judge_model": model_id,
-                "embedding_model": embedding_model_id,
-            }
-
-            print("[RUN] Running evaluation...")
-            job = client.alpha.eval.run_eval(
-                benchmark_id=benchmark_id,
-                benchmark_config=benchmark_config,
-                extra_body=extra_body,
-            )
-            print(f"[OK] Evaluation job started (Job ID: {job.job_id})")
-
-            print("[WAIT] Waiting for evaluation results...")
-            batch_result = None
-            waited = 0
-
-            while waited < max_wait_seconds:
-                time.sleep(poll_interval)
-                waited += poll_interval
-
-                try:
-                    job_status = client.alpha.eval.jobs.status(
-                        benchmark_id=benchmark_id,
-                        job_id=job.job_id,
-                    )
-                    status_value = getattr(job_status, "status", None)
-                    print(f"   Job status: {status_value} ({waited}s)")
-
-                    if status_value in ("completed", "success", "succeeded"):
-                        batch_result = client.alpha.eval.jobs.retrieve(
-                            benchmark_id=benchmark_id,
-                            job_id=job.job_id,
-                        )
-                        print(f"   [OK] Results received after {waited}s")
-                        break
-                    elif status_value in ("failed", "error"):
-                        error_msg = getattr(job_status, "error", None)
-                        error_detail = getattr(job_status, "error_message", None)
-                        error_info = getattr(job_status, "message", None)
-                        print(f"   [DEBUG] Full job_status: {job_status}")
-                        details = error_msg or error_detail or error_info or "No error details available"
-                        raise RuntimeError(
-                            f"Evaluation job {job.job_id} failed with status: {status_value}. "
-                            f"Details: {details}"
-                        )
-                except RuntimeError:
-                    raise
-                except Exception as e:
-                    print(f"   Waiting... ({waited}s) - {e}")
-
-            if batch_result is None:
-                raise RuntimeError(f"Evaluation job {job.job_id} did not complete within {max_wait_seconds}s")
-
-            scores = getattr(batch_result, "scores", None)
-            if scores:
-                scores_dict = scores if isinstance(scores, dict) else dict(scores)
-                for metric, score_data in scores_dict.items():
-                    score_val = 0.0
-                    if hasattr(score_data, "aggregated_results"):
-                        agg_results = score_data.aggregated_results
-                        if isinstance(agg_results, dict):
-                            score_val = agg_results.get("average", agg_results.get(metric, 0.0))
-                        else:
-                            score_val = float(agg_results) if agg_results else 0.0
-                    elif isinstance(score_data, dict) and "aggregated_results" in score_data:
-                        score_val = score_data["aggregated_results"].get(
-                            "average", score_data["aggregated_results"].get(metric, 0.0)
-                        )
-                    elif isinstance(score_data, (int, float)):
-                        score_val = float(score_data)
-
-                    aggregated_scores[metric].append((score_val, len(batch)))
-
-                    score_rows = None
-                    if hasattr(score_data, "score_rows"):
-                        score_rows = score_data.score_rows
-                    elif isinstance(score_data, dict) and "score_rows" in score_data:
-                        score_rows = score_data["score_rows"]
-                    if score_rows:
-                        if metric not in all_results["individual_scores"]:
-                            all_results["individual_scores"][metric] = []
-                        for row in score_rows:
-                            row_score = (
-                                row.get("score", 0.0) if isinstance(row, dict) else getattr(row, "score", 0.0)
-                            )
-                            all_results["individual_scores"][metric].append(row_score)
-
-            generations = getattr(batch_result, "generations", None)
-            if generations:
-                all_results["generations"].extend(list(generations))
-
-        except Exception as e:
-            print(f"[ERROR] Batch {batch_idx+1} failed: {e}")
-            all_results["failures"].append({"batch_index": batch_idx + 1, "error": str(e)})
-
-    total_batches = len(batches)
-    failed_batches = len(all_results["failures"])
-
-    if failed_batches == total_batches:
-        raise ValueError(
-            f"All {total_batches} evaluation batch(es) failed. "
-            f"First error: {all_results['failures'][0]['error'] if all_results['failures'] else 'Unknown'}"
-        )
-    if failed_batches > total_batches / 2:
-        raise ValueError(
-            f"Too many evaluation batches failed: {failed_batches}/{total_batches}. "
-            f"Errors: {[f['error'] for f in all_results['failures'][:3]]}{'...' if failed_batches > 3 else ''}"
-        )
-
-    print("\n[SUM] Aggregating results...")
-    final_metrics = {}
-    for metric, values in aggregated_scores.items():
-        if not values:
-            continue
-        total_score = sum(v[0] * v[1] for v in values)
-        total_count = sum(v[1] for v in values)
-        if total_count > 0:
-            final_metrics[metric] = total_score / total_count
-        else:
-            final_metrics[metric] = 0.0
 
     print("\n[LOG] Logging metrics to Kubeflow Pipelines...")
     for metric_name, metric_value in final_metrics.items():
-        evaluation_output_metrics.log_metric(metric_name, metric_value)
+        if isinstance(metric_value, float) and math.isnan(metric_value):
+            continue
+        evaluation_output_metrics.log_metric(metric_name, float(metric_value))
         print(f"   [OK] Logged {metric_name}: {metric_value:.4f}")
 
-    evaluation_output_metrics.log_metric("dataset_size", float(len(ragas_dataset)))
-    evaluation_output_metrics.log_metric("failure_count", float(len(all_results["failures"])))
-    print(f"   [OK] Logged dataset_size: {len(ragas_dataset)}")
-    print(f"   [OK] Logged failure_count: {len(all_results['failures'])}")
+    evaluation_output_metrics.log_metric("dataset_size", float(results["dataset_size"]))
+    evaluation_output_metrics.log_metric("valid_entries", float(results["valid_entries"]))
+    print(f"   [OK] Logged dataset_size: {results['dataset_size']}")
+    print(f"   [OK] Logged valid_entries: {results['valid_entries']}")
 
     formatted_results = {
-        "benchmark_id": f"ragas_pipeline_run_{base_timestamp}",
-        "timestamp": datetime.now().isoformat(),
-        "metrics": final_metrics,
-        "individual_scores": all_results["individual_scores"],
-        "generations": all_results["generations"],
-        "failures": all_results["failures"],
-        "dataset_size": len(ragas_dataset),
-        "mode": mode,
-        "model_id": model_id,
-        "embedding_model_id": embedding_model_id,
+        "benchmark_id": results["benchmark_id"],
+        "timestamp": results["timestamp"],
+        "metrics": results["metrics"],
+        "individual_scores": results["individual_scores"],
+        "generations": results["generations"],
+        "failures": results["failures"],
+        "dataset_size": results["dataset_size"],
+        "valid_entries": results["valid_entries"],
+        "mode": results["mode"],
+        "model_id": results["model_id"],
+        "embedding_model_id": results["embedding_model_id"],
     }
-
-    print("\n" + "=" * 70)
-    print("[RESULTS] RAGAS EVALUATION RESULTS")
-    print("=" * 70)
-    print(f"Benchmark ID: {formatted_results['benchmark_id']}")
-    print(f"Timestamp:    {formatted_results['timestamp']}")
-    print(f"Dataset Size: {formatted_results['dataset_size']} entries")
-    print(f"Mode:         {formatted_results['mode']}")
-    print("=" * 70)
-    if formatted_results.get("failures"):
-        print("\n[FAILURES] Failures:")
-        for failure in formatted_results["failures"]:
-            print(f"  Batch {failure.get('batch_index')}: {failure.get('error')}")
-    if formatted_results["metrics"]:
-        print("\n[METRICS] Aggregated Metrics:")
-        print("-" * 70)
-        for metric, score in formatted_results["metrics"].items():
-            status = "[PASS]" if score > 0.8 else "[WARN]" if score > 0.6 else "[FAIL]"
-            print(f"  {status} {metric:25s}: {score:.4f}")
-        print("-" * 70)
-    print("=" * 70)
 
     results_json = json.dumps(formatted_results, indent=2, ensure_ascii=False)
     with open(evaluation_results_output.path, "w", encoding="utf-8") as f:
@@ -1042,11 +1089,9 @@ def pipeline(
         model_id=model_id,
         embedding_model_id=embedding_model_id,
         metrics=metrics,
-        mode=mode,
         batch_size=batch_size,
+        show_progress=True,
         timeout=timeout,
-        max_wait_seconds=max_wait_seconds,
-        poll_interval=poll_interval,
     )
     evaluate_task.after(generate_task)
     kubernetes.use_config_map_as_env(

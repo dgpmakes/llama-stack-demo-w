@@ -26,16 +26,8 @@ Requires: pip install ragas.
 When --model-id and --embedding-model-id are provided with LLAMA_STACK_HOST
 and LLAMA_STACK_PORT, uses Llama Stack for the LLM and embeddings.
 
-LLM options:
-  - Default: ChatOpenAI with base_url to /v1/openai/v1 (OpenAI-compatible chat
-    completions). May show a deprecation notice on the server; works well with RAGAS.
-  - --use-openai-responses-api: ChatOpenAI(use_responses_api=True). Not recommended:
-    RAGAS often raises AttributeError('str' object has no attribute 'content') due to
-    response format mismatch. Use the default (chat) instead.
-  - --use-responses-api: Custom LLM using Llama Stack's native API
-    (client.responses.create()). Some RAGAS metrics may hit parser errors.
-
-Embeddings always use Llama Stack's embeddings API. Otherwise RAGAS uses its defaults.
+LLM: ChatOpenAI with base_url to /v1 (OpenAI-compatible chat completions).
+Embeddings: Llama Stack's embeddings API when --embedding-model-id is set. Otherwise RAGAS uses its defaults.
 
 Set RAGAS_EVAL_LOG_LEVEL=ERROR (or WARNING) to reduce httpx/httpcore request log noise.
 (typically OpenAI; set OPENAI_API_KEY).
@@ -56,7 +48,6 @@ Usage:
 """
 
 import argparse
-import asyncio
 import json
 import logging
 import math
@@ -216,7 +207,7 @@ def _get_chat_openai_for_llama_stack(model_id: str):
     if not port:
         raise ValueError("LLAMA_STACK_PORT must be set when using Llama Stack for evaluation")
     protocol = "https" if secure else "http"
-    base_url = f"{protocol}://{host}:{port}/v1/openai/v1"
+    base_url = f"{protocol}://{host}:{port}/v1"
     api_key = os.environ.get("API_KEY", "fake")
     return ChatOpenAI(
         model=model_id,
@@ -226,258 +217,17 @@ def _get_chat_openai_for_llama_stack(model_id: str):
     )
 
 
-def _get_chat_openai_responses_for_llama_stack(model_id: str):
-    """
-    Build ChatOpenAI with use_responses_api=True (OpenAI Responses API).
-    Same base_url as chat; LangChain uses the Responses API endpoint when this flag is set.
-    Requires a server that exposes an OpenAI-compatible Responses API.
-    """
-    try:
-        from langchain_openai import ChatOpenAI
-    except ImportError as e:
-        raise ImportError(
-            "langchain-openai is required for Llama Stack LLM. "
-            "Install with: pip install langchain-openai"
-        ) from e
-    host = os.environ.get("LLAMA_STACK_HOST")
-    port = os.environ.get("LLAMA_STACK_PORT")
-    secure = os.environ.get("LLAMA_STACK_SECURE", "").lower() in ("true", "1", "yes")
-    if not host:
-        raise ValueError("LLAMA_STACK_HOST must be set when using Llama Stack for evaluation")
-    if not port:
-        raise ValueError("LLAMA_STACK_PORT must be set when using Llama Stack for evaluation")
-    protocol = "https" if secure else "http"
-    base_url = f"{protocol}://{host}:{port}/v1/openai/v1"
-    api_key = os.environ.get("API_KEY", "fake")
-    llm = ChatOpenAI(
-        model=model_id,
-        api_key=api_key,
-        base_url=base_url,
-        temperature=0.0,
-        use_responses_api=True,
-    )
-    # OpenAI Responses API does not accept 'n'; RAGAS passes n for multiple completions. Strip it.
-    # Responses API also returns AIMessage.content as list of blocks; RAGAS expects a string. Normalize.
-    return _StripNLLMWrapper(llm)
-
-
-def _normalize_ai_message_content(msg: Any) -> Any:
-    """
-    If msg is an AIMessage with content that is a list (Responses API format),
-    return a new AIMessage with content as a single string. If msg is already
-    a string (e.g. raw completion), return AIMessage(content=msg). Otherwise return msg unchanged.
-    RAGAS expects .content to be a string (it does not handle list-of-blocks).
-    """
-    from langchain_core.messages import AIMessage
-
-    if isinstance(msg, str):
-        return AIMessage(content=msg)
-    if not isinstance(msg, AIMessage):
-        return msg
-    content = getattr(msg, "content", None)
-    if isinstance(content, list):
-        parts = []
-        for block in content:
-            if isinstance(block, dict):
-                text = block.get("text") or block.get("content")
-                if text is not None:
-                    parts.append(str(text))
-            elif hasattr(block, "content"):
-                parts.append(str(block.content))
-            elif hasattr(block, "text"):
-                parts.append(str(block.text))
-            elif isinstance(block, str):
-                parts.append(block)
-        content = "\n".join(parts) if parts else ""
-        kwargs = {"content": content, "response_metadata": getattr(msg, "response_metadata", {})}
-        if hasattr(msg, "id") and getattr(msg, "id", None) is not None:
-            kwargs["id"] = msg.id
-        return AIMessage(**kwargs)
-    return msg
-
-
-def _normalize_llm_result(result: Any) -> Any:
-    """Normalize AIMessages inside an LLMResult so content is always a string. Build new generations so .text etc. are consistent."""
-    if result is None:
-        return result
-    from langchain_core.outputs import ChatGeneration, LLMResult
-
-    if not hasattr(result, "generations") or not isinstance(result.generations, list):
-        return result
-    new_batches = []
-    for batch in result.generations:
-        if not isinstance(batch, list):
-            new_batches.append(batch)
-            continue
-        new_batch = []
-        for gen in batch:
-            if hasattr(gen, "message"):
-                raw = gen.message
-                norm_msg = _normalize_ai_message_content(raw)
-                new_batch.append(ChatGeneration(message=norm_msg))
-            else:
-                new_batch.append(gen)
-        new_batches.append(new_batch)
-    return LLMResult(generations=new_batches)
-
-
-class _StripNLLMWrapper:
-    """
-    Wraps an LLM and strips the 'n' kwarg before delegating. Used with
-    ChatOpenAI(use_responses_api=True) because the OpenAI Responses API
-    create() does not accept 'n'. Also normalizes AIMessage.content from
-    list-of-blocks to string so RAGAS does not raise 'str' has no attribute 'content'.
-    """
-
-    def __init__(self, llm: Any):
-        self._llm = llm
-
-    def invoke(self, messages: List[Any], **kwargs: Any) -> Any:
-        kwargs = {k: v for k, v in kwargs.items() if k != "n"}
-        out = self._llm.invoke(messages, **kwargs)
-        return _normalize_ai_message_content(out)
-
-    async def ainvoke(self, messages: List[Any], **kwargs: Any) -> Any:
-        kwargs = {k: v for k, v in kwargs.items() if k != "n"}
-        out = await self._llm.ainvoke(messages, **kwargs)
-        return _normalize_ai_message_content(out)
-
-    def generate(
-        self,
-        messages: List[Any],
-        stop: List[str] | None = None,
-        **kwargs: Any,
-    ) -> Any:
-        kwargs = {k: v for k, v in kwargs.items() if k != "n"}
-        out = self._llm.generate(messages, stop=stop, **kwargs)
-        return _normalize_llm_result(out)
-
-    async def agenerate(
-        self,
-        messages: List[Any],
-        stop: List[str] | None = None,
-        **kwargs: Any,
-    ) -> Any:
-        kwargs = {k: v for k, v in kwargs.items() if k != "n"}
-        out = await self._llm.agenerate(messages, stop=stop, **kwargs)
-        return _normalize_llm_result(out)
-
-    def bind(self, **kwargs: Any) -> "_StripNLLMWrapper":
-        """Wrap bound LLM so normalized output is still applied (RAGAS often uses llm.bind(...))."""
-        bound = self._llm.bind(**kwargs)
-        return _StripNLLMWrapper(bound)
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self._llm, name)
-
-
-def _messages_to_input(messages: List[Any]) -> str:
-    """Convert LangChain messages to a single string for Responses API input."""
-    from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-
-    parts = []
-    for m in messages:
-        if isinstance(m, HumanMessage):
-            parts.append(str(m.content))
-        elif isinstance(m, SystemMessage):
-            parts.append(str(m.content))
-        elif isinstance(m, AIMessage):
-            parts.append(str(m.content))
-        else:
-            parts.append(str(getattr(m, "content", m)))
-    return "\n\n".join(parts) if parts else ""
-
-
-class _LlamaStackResponsesLLM:
-    """
-    LangChain-compatible LLM using Llama Stack's Responses API (client.responses.create).
-    Use with --use-responses-api when you need the non-deprecated route. Some RAGAS
-    metrics may raise output parser errors (StringIO vs direct-schema).
-    """
-
-    _client: Any
-    _model_id: str
-
-    def __init__(self, client: Any, model_id: str):
-        self._client = client
-        self._model_id = model_id
-
-    def invoke(self, messages: List[Any], **kwargs: Any) -> Any:
-        result = self._generate(messages, run_manager=None, **kwargs)
-        return result.generations[0][0].message
-
-    def generate(
-        self,
-        messages: List[Any],
-        stop: List[str] | None = None,
-        **kwargs: Any,
-    ) -> Any:
-        return self.agenerate(messages, stop=stop, **kwargs)
-
-    async def agenerate(
-        self,
-        messages: List[Any],
-        stop: List[str] | None = None,
-        **kwargs: Any,
-    ) -> Any:
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None,
-            lambda: self._generate(messages, stop=stop, run_manager=None, **kwargs),
-        )
-
-    def _generate(
-        self,
-        messages: List[Any],
-        stop: List[str] | None = None,
-        run_manager: Any = None,
-        **kwargs: Any,
-    ) -> Any:
-        from langchain_core.messages import AIMessage
-        from langchain_core.outputs import ChatGeneration, LLMResult
-
-        prompt = _messages_to_input(messages)
-        n = max(1, min(int(kwargs.get("n", 1)), 5))
-        generations: List[ChatGeneration] = []
-        for _ in range(n):
-            resp = self._client.responses.create(
-                model=self._model_id,
-                input=prompt,
-            )
-            text = getattr(resp, "output_text", None) or getattr(resp, "output", str(resp))
-            if hasattr(text, "content"):
-                text = getattr(text, "content", str(text))
-            if not isinstance(text, str):
-                text = json.dumps(text) if isinstance(text, (dict, list)) else str(text)
-            generations.append(ChatGeneration(message=AIMessage(content=text)))
-        return LLMResult(generations=[generations])
-
-    @property
-    def _llm_type(self) -> str:
-        return "llama_stack_responses"
-
-
 def _get_llama_stack_llm_and_embeddings(
     model_id: str,
     embedding_model_id: str,
     timeout: int = 600,
-    use_responses_api: bool = False,
-    use_openai_responses_api: bool = False,
 ) -> Tuple[Any, Any]:
     """
     Build LangChain-compatible LLM and embeddings for Llama Stack.
-    - use_openai_responses_api: ChatOpenAI(use_responses_api=True) — OpenAI Responses API.
-    - use_responses_api: custom wrapper around client.responses.create() — Llama Stack native.
-    - else: ChatOpenAI() at /v1/openai/v1 — chat completions.
-    Embeddings always use Llama Stack's embeddings API.
+    LLM: ChatOpenAI at /v1 (chat completions). Embeddings: Llama Stack's embeddings API.
     """
     client = _get_llama_stack_client(timeout=timeout)
-    if use_openai_responses_api:
-        llm = _get_chat_openai_responses_for_llama_stack(model_id)
-    elif use_responses_api:
-        llm = _LlamaStackResponsesLLM(client, model_id)
-    else:
-        llm = _get_chat_openai_for_llama_stack(model_id)
+    llm = _get_chat_openai_for_llama_stack(model_id)
     embeddings = _LlamaStackEmbeddings(client, embedding_model_id)
     return llm, embeddings
 
@@ -528,8 +278,6 @@ def run_ragas_evaluation_direct(
     show_progress: bool = True,
     model_id: str | None = None,
     embedding_model_id: str | None = None,
-    use_responses_api: bool = False,
-    use_openai_responses_api: bool = False,
 ) -> Dict[str, Any]:
     """
     Run RAGAS evaluation using the RAGAS library directly (no benchmark API).
@@ -570,24 +318,8 @@ def run_ragas_evaluation_direct(
                 "When using Llama Stack for RAGAS, both --model-id and --embedding-model-id are required. "
                 "Set LLAMA_STACK_HOST and LLAMA_STACK_PORT."
             )
-        if use_openai_responses_api:
-            print(
-                "[WARN] --use-openai-responses-api is used: RAGAS may raise "
-                "AttributeError('str' object has no attribute 'content'). "
-                "Use default (chat completions) if that happens."
-            )
-            llm_kind = "OpenAI Responses API (ChatOpenAI)"
-        elif use_responses_api:
-            llm_kind = "Llama Stack native responses API"
-        else:
-            llm_kind = "chat (OpenAI-compatible)"
-        print(f"[LLAMA-STACK] Using LLM: {model_id} ({llm_kind}), embeddings: {embedding_model_id}")
-        llm, embeddings = _get_llama_stack_llm_and_embeddings(
-            model_id,
-            embedding_model_id,
-            use_responses_api=use_responses_api,
-            use_openai_responses_api=use_openai_responses_api,
-        )
+        print(f"[LLAMA-STACK] Using LLM: {model_id} (chat), embeddings: {embedding_model_id}")
+        llm, embeddings = _get_llama_stack_llm_and_embeddings(model_id, embedding_model_id)
 
     # Build RAGAS EvaluationDataset from SingleTurnSample instances
     samples = [SingleTurnSample(**entry) for entry in ragas_data]
@@ -641,8 +373,6 @@ def run_ragas_evaluation_direct(
         "mode": "ragas_direct",
         "model_id": model_id,
         "embedding_model_id": embedding_model_id,
-        "use_responses_api": use_responses_api,
-        "use_openai_responses_api": use_openai_responses_api,
     }
 
     print("\n" + "=" * 70)
@@ -713,16 +443,6 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Embedding model (recorded in output; direct RAGAS uses default embeddings unless configured)",
     )
-    parser.add_argument(
-        "--use-openai-responses-api",
-        action="store_true",
-        help="Use OpenAI Responses API (ChatOpenAI use_responses_api=True). Often fails with RAGAS; prefer default chat completions.",
-    )
-    parser.add_argument(
-        "--use-responses-api",
-        action="store_true",
-        help="Use Llama Stack native Responses API (client.responses.create). Some RAGAS metrics may hit parser errors.",
-    )
 
     args = parser.parse_args()
     args.input_path = args.input_path or args.ragas_dataset
@@ -751,8 +471,6 @@ def main() -> int:
         show_progress=not args.no_progress,
         model_id=args.model_id,
         embedding_model_id=args.embedding_model_id,
-        use_responses_api=args.use_responses_api,
-        use_openai_responses_api=args.use_openai_responses_api,
     )
 
     with open(args.output, "w", encoding="utf-8") as f:

@@ -2,6 +2,8 @@
 
 **Generated RAGAS dataset**: each entry has `id`, `question`, `answer`, `contexts` (or `["No context retrieved"]` when none), `ground_truth`. If the model used tools, `tool_calls` is added: list of `{ "tool_name", "arguments", "response" }`. Optional `expected_tool` / `expected_tool_parameters` are copied from the base dataset when present. Entries with no contexts (e.g. tool-only answers) are no longer skipped at evaluation; context metrics may be 0 for those rows.
 
+**RAGAS evaluation (e.g. in-pipeline run)**: Needs both a **judge LLM** (`model_id`) and an **embedding model** (`embedding_model_id`). If you see `'NoneType' object has no attribute 'generate'`, the judge model was not set or not found—ensure `model_id` is set and the LLM is deployed and available to the Llama Stack server. For `answer_relevancy`, the server must have `TRUSTYAI_EMBEDDING_MODEL` set (e.g. `ragDefaults.enableRagas: true` and `ragDefaults.embeddingModel` in Helm). Pipeline params `model_id` and `embedding_model_id` must match models available to the server.
+
 Set project:
 
 ```sh
@@ -46,3 +48,15 @@ uv run python ragas_dataset_generator.py ../materials/datasets/base_dataset_smal
 ```
 
 Use a specific base dataset path if needed (e.g. `materials/datasets/base_dataset_small.json`). `LLAMA_STACK_HOST`, `LLAMA_STACK_PORT`, and `LLAMA_STACK_SECURE` are read from the environment by the script.
+
+# Run RAGAS evaluation of a dataset
+
+```sh
+export EMBEDDING_MODEL_ID="sentence-transformers/nomic-ai/nomic-embed-text-v1.5"
+export MODEL_ID="llama-4-scout-17b-16e-w4a16/Llama-4-Scout-17B-16E-W4A16"
+export METRICS="faithfulness,answer_relevancy,context_precision,context_recall"
+uv run ragas_dataset_eval.py ./scratch/ragas_dataset.json \
+  --metrics $METRICS \
+  --model-id $MODEL_ID \
+  --embedding-model-id $EMBEDDING_MODEL_ID
+```
