@@ -111,8 +111,8 @@ def parse_args():
     )
     parser.add_argument(
         "--git-context",
-        default=os.environ.get("RAGAS_SCHEDULER_GIT_CONTEXT", "client/docs_pdf"),
-        help="Git context path",
+        default=os.environ.get("RAGAS_SCHEDULER_GIT_CONTEXT", "materials/datasets"),
+        help="Git context path (e.g. materials/datasets for base dataset)",
     )
     parser.add_argument(
         "--git-ref",
@@ -157,8 +157,13 @@ def parse_args():
     parser.add_argument(
         "--file-search-max-tokens-per-chunk",
         type=int,
-        default=int(os.environ.get("RAGAS_SCHEDULER_FILE_SEARCH_MAX_TOKENS_PER_CHUNK", "0")),
+        default=int(os.environ.get("RAGAS_SCHEDULER_FILE_SEARCH_MAX_TOKENS_PER_CHUNK", "512")),
         help="File search max tokens per chunk",
+    )
+    parser.add_argument(
+        "--ranker",
+        default=os.environ.get("RAGAS_SCHEDULER_RANKER", "default"),
+        help="Ranker for retrieval scoring (e.g. default)",
     )
     parser.add_argument(
         "--metrics",
@@ -325,6 +330,7 @@ def main():
             "file_search_max_chunks": args.file_search_max_chunks,
             "file_search_score_threshold": args.file_search_score_threshold,
             "file_search_max_tokens_per_chunk": args.file_search_max_tokens_per_chunk,
+            "ranker": args.ranker,
             "metrics": args.metrics,
             "mode": args.mode,
             "batch_size": args.batch_size,

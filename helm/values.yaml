@@ -117,8 +117,9 @@ pipelines:
       instructions: "You are a helpful assistant that can answer questions about the documents in the vector store."
       retrieval_modes: "vector, hybrid"
       file_search_max_chunks: 5
-      file_search_score_threshold: 0.7
-      file_search_max_tokens_per_chunk: 0
+      file_search_score_threshold: 0
+      file_search_max_tokens_per_chunk: 512
+      ranker: "default"
       metrics: "answer_relevancy,faithfulness,context_precision,context_recall"
       mode: "inline" # RAGAS evaluation mode (e.g. inline or remote)
       batch_size: 0

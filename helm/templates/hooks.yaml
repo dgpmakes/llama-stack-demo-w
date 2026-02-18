@@ -1015,7 +1015,8 @@ spec:
             --max-wait-seconds "${RAGAS_SCHEDULER_MAX_WAIT_SECONDS}" \
             --poll-interval "${RAGAS_SCHEDULER_POLL_INTERVAL}" \
             --vector-store-base-name "${RAGAS_SCHEDULER_VECTOR_STORE_BASE_NAME}" \
-            --model-id "${RAGAS_SCHEDULER_MODEL_ID}"
+            --model-id "${RAGAS_SCHEDULER_MODEL_ID}" \
+            --ranker "${RAGAS_SCHEDULER_RANKER}"
           echo ""
           echo "=== RAGAS scheduler finished successfully ==="
         env:
@@ -1069,6 +1070,8 @@ spec:
           value: {{ .Values.ragDefaults.vectorStoreBaseName | default "rag-store" | quote }}
         - name: RAGAS_SCHEDULER_MODEL_ID
           value: {{ .Values.ragDefaults.modelId | default .Values.pipelines.scheduler.params.model_id | default "llama-3-1-8b-w4a16/llama-3-1-8b-w4a16" | quote }}
+        - name: RAGAS_SCHEDULER_RANKER
+          value: {{ .Values.pipelines.scheduler.params.ranker | default "default" | quote }}
         resources:
           limits:
             cpu: '1'

@@ -315,10 +315,11 @@ def generate_ragas_dataset(
     mcp_tools_json: str = "[]",
     instructions: str = "",
     timeout: int = 300,
-    retrieval_mode: str = "vector", # vector, text, hybrid
+    retrieval_mode: str = "vector",  # vector, text, hybrid
     file_search_max_chunks: int = 5,
     file_search_score_threshold: float = 0.7,
     file_search_max_tokens_per_chunk: int = 512,
+    ranker: str = "default",
 ):
     """
     Generate RAGAS-compatible dataset with RAG answers and contexts.
@@ -338,6 +339,7 @@ def generate_ragas_dataset(
         file_search_max_chunks: Max number of chunks to retrieve (OpenAI: max_num_results)
         file_search_score_threshold: Min score for returned results (0–1)
         file_search_max_tokens_per_chunk: Max tokens per chunk in results
+        ranker: Ranker to use for scoring retrieved chunks (e.g. "default")
     """
     import json
     import os
@@ -460,11 +462,13 @@ def generate_ragas_dataset(
                 "max_chunks": file_search_max_chunks,
                 "score_threshold": file_search_score_threshold,
                 "max_tokens_per_chunk": file_search_max_tokens_per_chunk,
+                "ranker": ranker,
             },
         }
         tools_list.append(file_search_tool)
         print(
             f"   [OK] Added file_search tool (vector store: {vector_store_id}, "
+            f"retrieval_mode={retrieval_mode}, ranker={ranker}, "
             f"max_chunks={file_search_max_chunks}, score_threshold={file_search_score_threshold}, "
             f"max_tokens_per_chunk={file_search_max_tokens_per_chunk})"
         )
@@ -963,10 +967,11 @@ def pipeline(
     vector_store_name: str = "",
     tools: str = "all",
     instructions: str = "",
-    retrieval_mode: str = "vector", # vector, text, hybrid
+    retrieval_mode: str = "vector",  # vector, text, hybrid
     file_search_max_chunks: int = 5,
     file_search_score_threshold: float = 0.7,
     file_search_max_tokens_per_chunk: int = 512,
+    ranker: str = "default",
     metrics: str = DEFAULT_METRICS,
     mode: str = "inline",
     batch_size: int = 0,
@@ -1037,6 +1042,7 @@ def pipeline(
         file_search_max_chunks=file_search_max_chunks,
         file_search_score_threshold=file_search_score_threshold,
         file_search_max_tokens_per_chunk=file_search_max_tokens_per_chunk,
+        ranker=ranker,
     )
     generate_task.after(load_task, resolve_task, discover_task)
     kubernetes.use_config_map_as_env(
