@@ -139,7 +139,7 @@ def create_recurring_run(
         experiment_id=experiment_id,
         job_name=job_name,
         pipeline_id=pipeline_id,
-        version_id=pipeline_version_id,
+        # version_id=pipeline_version_id, => use always the latest version of the pipeline
         params=params,
         interval_second=interval_second if not cron_expression else None,
         cron_expression=cron_expression,
