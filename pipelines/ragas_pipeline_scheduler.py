@@ -210,7 +210,20 @@ def parse_args():
     parser.add_argument(
         "--model-id",
         default=os.environ.get("RAGAS_SCHEDULER_MODEL_ID", "llama-3-1-8b-w4a16/llama-3-1-8b-w4a16"),
-        help="LLM model ID for RAGAS (e.g. from ragDefaults.modelId)",
+        help="LLM model ID for dataset generation (Responses API)",
+    )
+    parser.add_argument(
+        "--evaluation-model-id",
+        default=os.environ.get("RAGAS_SCHEDULER_EVALUATION_MODEL_ID", ""),
+        help="LLM model ID for RAGAS evaluation (judge). Defaults to model_id if unset.",
+    )
+    parser.add_argument(
+        "--evaluation-embedding-model-id",
+        default=os.environ.get(
+            "RAGAS_SCHEDULER_EVALUATION_EMBEDDING_MODEL_ID",
+            "sentence-transformers/nomic-ai/nomic-embed-text-v1.5",
+        ),
+        help="Embedding model ID for RAGAS evaluation metrics.",
     )
 
     return parser.parse_args()
@@ -227,6 +240,8 @@ def get_retrieval_modes_for_provider(provider_id: str, configured_modes: str) ->
 def main():
     """Create recurring runs for ragas-pipeline per vector store and retrieval mode, then exit."""
     args = parse_args()
+    if not args.evaluation_model_id:
+        args.evaluation_model_id = args.model_id
 
     print("=== RAGAS Pipeline Scheduler ===")
     print(f"Pipeline name: {args.pipeline_name}")
@@ -323,6 +338,8 @@ def main():
             "git_ref": args.git_ref,
             "base_dataset_filename": args.base_dataset_filename,
             "model_id": args.model_id,
+            "evaluation_model_id": args.evaluation_model_id,
+            "evaluation_embedding_model_id": args.evaluation_embedding_model_id,
             "vector_store_name": vector_store_name,
             "tools": args.tools,
             "instructions": args.instructions,

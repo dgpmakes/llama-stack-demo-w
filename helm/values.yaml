@@ -22,6 +22,7 @@ ragDefaults:
   chunkOverlapInTokens: 400
   enableRagas: true
   modelId: llama-4-scout-17b-16e-w4a16/Llama-4-Scout-17B-16E-W4A16
+  evaluationModelId: llama-4-scout-17b-16e-w4a16/Llama-4-Scout-17B-16E-W4A16
   vectorStoreBaseName: rag-store
   vectorStoreProviderIds: "milvus-remote, pgvector"
 
@@ -113,6 +114,9 @@ pipelines:
       gitContext: materials/datasets
       gitRef: next
       base_dataset_filename: base_dataset_small.json
+      # model_id: used for dataset generation (Responses API). Default from ragDefaults.modelId.
+      # evaluation_model_id: used for RAGAS scoring (judge). Defaults to model_id if unset.
+      # evaluation_embedding_model_id: embedding model for RAGAS metrics. Defaults to nomic-embed-text-v1.5 if unset.
       tools: "all"
       instructions: "You are a helpful assistant that can answer questions about the documents in the vector store."
       retrieval_modes: "vector, hybrid"

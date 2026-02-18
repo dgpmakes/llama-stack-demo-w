@@ -893,7 +893,7 @@ spec:
         - name: PIPELINE_VECTOR_STORE_BASE_NAME
           value: {{ .Values.ragDefaults.vectorStoreBaseName | default "rag-store" | quote }}
         - name: PIPELINE_EMBEDDING_MODEL
-          value: {{ .Values.ragDefaults.embeddingModel.modelProvider }}/{{ .Values.ragDefaults.embeddingModel.providerModelId }}
+          value: {{ .Values.ragDefaults.embeddingModel.modelProvider }}/{{ .Values.ragDefaults.embeddingModel.providerModelId | quote }}
         - name: PIPELINE_EMBEDDING_DIMENSION
           value: {{ .Values.ragDefaults.embeddingModel.vectorDimension | toString | quote }}
         - name: PIPELINE_RANKER
@@ -1016,6 +1016,8 @@ spec:
             --poll-interval "${RAGAS_SCHEDULER_POLL_INTERVAL}" \
             --vector-store-base-name "${RAGAS_SCHEDULER_VECTOR_STORE_BASE_NAME}" \
             --model-id "${RAGAS_SCHEDULER_MODEL_ID}" \
+            --evaluation-model-id "${RAGAS_SCHEDULER_EVALUATION_MODEL_ID}" \
+            --evaluation-embedding-model-id "${RAGAS_SCHEDULER_EVALUATION_EMBEDDING_MODEL_ID}" \
             --ranker "${RAGAS_SCHEDULER_RANKER}"
           echo ""
           echo "=== RAGAS scheduler finished successfully ==="
@@ -1069,7 +1071,11 @@ spec:
         - name: RAGAS_SCHEDULER_VECTOR_STORE_BASE_NAME
           value: {{ .Values.ragDefaults.vectorStoreBaseName | default "rag-store" | quote }}
         - name: RAGAS_SCHEDULER_MODEL_ID
-          value: {{ .Values.ragDefaults.modelId | default .Values.pipelines.scheduler.params.model_id | default "llama-3-1-8b-w4a16/llama-3-1-8b-w4a16" | quote }}
+          value: {{ .Values.ragDefaults.modelId | default "llama-3-1-8b-w4a16/llama-3-1-8b-w4a16" | quote }}
+        - name: RAGAS_SCHEDULER_EVALUATION_MODEL_ID
+          value: {{ .Values.ragDefaults.evaluationModelId | default "llama-3-1-8b-w4a16/llama-3-1-8b-w4a16" | quote }}
+        - name: RAGAS_SCHEDULER_EVALUATION_EMBEDDING_MODEL_ID
+          value: {{ printf "%s/%s" .Values.ragDefaults.embeddingModel.modelProvider .Values.ragDefaults.embeddingModel.providerModelId | quote }}
         - name: RAGAS_SCHEDULER_RANKER
           value: {{ .Values.pipelines.scheduler.params.ranker | default "default" | quote }}
         resources:

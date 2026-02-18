@@ -611,8 +611,8 @@ def generate_ragas_dataset(
 )
 def run_ragas_evaluation(
     ragas_dataset_input: Input[Dataset],
-    model_id: str,
-    embedding_model_id: str,
+    evaluation_model_id: str,
+    evaluation_embedding_model_id: str,
     metrics: str,
     evaluation_output_metrics: Output[Metrics],
     evaluation_results_output: Output[Dataset],
@@ -629,8 +629,9 @@ def run_ragas_evaluation(
 
     Args:
         ragas_dataset_input: Input artifact containing the RAGAS dataset JSON
-        model_id: LLM model identifier for scoring (judge)
-        embedding_model_id: Embedding model identifier
+        evaluation_model_id: LLM model identifier for RAGAS scoring (judge); can differ from
+            the model used to generate the dataset
+        evaluation_embedding_model_id: Embedding model identifier for RAGAS metrics (e.g. answer_relevancy)
         metrics: Comma-separated list of RAGAS metrics to compute
         evaluation_output_metrics: Kubeflow Metrics output for logging RAGAS metrics
         evaluation_results_output: Output artifact for the evaluation results JSON
@@ -846,12 +847,17 @@ def run_ragas_evaluation(
     metric_objects = get_metric_objects(metrics_list, ragas_metrics)
     print(f"[METRICS] {', '.join(metrics_list)}")
 
-    if not (model_id and embedding_model_id):
+    if not (evaluation_model_id and evaluation_embedding_model_id):
         raise ValueError(
-            "When using Llama Stack for RAGAS, both model_id and embedding_model_id are required."
+            "When using Llama Stack for RAGAS, both evaluation_model_id and evaluation_embedding_model_id are required."
         )
-    print(f"[LLAMA-STACK] Using LLM: {model_id} (chat), embeddings: {embedding_model_id}")
-    llm, embeddings = _get_llama_stack_llm_and_embeddings(model_id, embedding_model_id, timeout_sec=timeout)
+    print(
+        f"[LLAMA-STACK] Using evaluation LLM (judge): {evaluation_model_id}, "
+        f"embeddings: {evaluation_embedding_model_id}"
+    )
+    llm, embeddings = _get_llama_stack_llm_and_embeddings(
+        evaluation_model_id, evaluation_embedding_model_id, timeout_sec=timeout
+    )
 
     samples = [SingleTurnSample(**entry) for entry in ragas_data]
     eval_dataset = EvaluationDataset(samples=samples)
@@ -898,8 +904,8 @@ def run_ragas_evaluation(
         "dataset_size": len(ragas_dataset),
         "valid_entries": len(ragas_data),
         "mode": "ragas_direct",
-        "model_id": model_id,
-        "embedding_model_id": embedding_model_id,
+        "evaluation_model_id": evaluation_model_id,
+        "evaluation_embedding_model_id": evaluation_embedding_model_id,
     }
 
     print("\n" + "=" * 70)
@@ -943,8 +949,8 @@ def run_ragas_evaluation(
         "dataset_size": results["dataset_size"],
         "valid_entries": results["valid_entries"],
         "mode": results["mode"],
-        "model_id": results["model_id"],
-        "embedding_model_id": results["embedding_model_id"],
+        "evaluation_model_id": results["evaluation_model_id"],
+        "evaluation_embedding_model_id": results["evaluation_embedding_model_id"],
     }
 
     results_json = json.dumps(formatted_results, indent=2, ensure_ascii=False)
@@ -963,7 +969,8 @@ def pipeline(
     git_ref: str = "next",
     base_dataset_filename: str = "base_dataset_small.json",
     model_id: str = "llama-3-1-8b-w4a16/llama-3-1-8b-w4a16",
-    embedding_model_id: str = "sentence-transformers/nomic-ai/nomic-embed-text-v1.5",
+    evaluation_model_id: str = "llama-3-1-8b-w4a16/llama-3-1-8b-w4a16",
+    evaluation_embedding_model_id: str = "sentence-transformers/nomic-ai/nomic-embed-text-v1.5",
     vector_store_name: str = "",
     tools: str = "all",
     instructions: str = "",
@@ -981,6 +988,9 @@ def pipeline(
 ):
     """
     RAGAS Evaluation Pipeline (v2).
+
+    model_id: LLM used to generate the RAGAS dataset (Responses API with file_search).
+    evaluation_model_id: LLM used as RAGAS judge for scoring metrics (can be the same or different).
 
     DAG:
     - load_base_dataset_from_git, resolve_vector_store, discover_mcp_tools (parallel)
@@ -1062,8 +1072,8 @@ def pipeline(
 
     evaluate_task = run_ragas_evaluation(
         ragas_dataset_input=generate_task.outputs["ragas_dataset_output"],
-        model_id=model_id,
-        embedding_model_id=embedding_model_id,
+        evaluation_model_id=evaluation_model_id,
+        evaluation_embedding_model_id=evaluation_embedding_model_id,
         metrics=metrics,
         batch_size=batch_size,
         show_progress=True,
