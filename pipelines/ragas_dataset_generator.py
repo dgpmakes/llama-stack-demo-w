@@ -277,6 +277,7 @@ def generate_ragas_dataset(
             "file_search": {
                 "retrieval_mode": retrieval_mode,
                 "max_chunks": file_search_max_chunks,
+                "max_num_results": file_search_max_chunks,  # OpenAI-compatible name; server may use either
                 "score_threshold": file_search_score_threshold,
                 "max_tokens_per_chunk": file_search_max_tokens_per_chunk,
             },

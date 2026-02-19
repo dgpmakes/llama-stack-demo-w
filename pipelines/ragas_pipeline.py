@@ -458,6 +458,7 @@ def generate_ragas_dataset(
 
     print("\n[CONFIG] Configuring tools...")
     tools_list: List[Dict[str, Any]] = []
+    max_chunks_int = int(file_search_max_chunks)  # coerce in case KFP passes float from YAML default
 
     if vector_store_id:
         file_search_tool: Dict[str, Any] = {
@@ -465,7 +466,8 @@ def generate_ragas_dataset(
             "vector_store_ids": [vector_store_id],
             "file_search": {
                 "retrieval_mode": retrieval_mode,
-                "max_chunks": file_search_max_chunks,
+                "max_chunks": max_chunks_int,
+                "max_num_results": max_chunks_int,  # OpenAI-compatible name; server may use either
                 "score_threshold": file_search_score_threshold,
                 "max_tokens_per_chunk": file_search_max_tokens_per_chunk,
                 "ranker": ranker,
@@ -475,7 +477,7 @@ def generate_ragas_dataset(
         print(
             f"   [OK] Added file_search tool (vector store: {vector_store_id}, "
             f"retrieval_mode={retrieval_mode}, ranker={ranker}, "
-            f"max_chunks={file_search_max_chunks}, score_threshold={file_search_score_threshold}, "
+            f"max_chunks={max_chunks_int}, score_threshold={file_search_score_threshold}, "
             f"max_tokens_per_chunk={file_search_max_tokens_per_chunk})"
         )
 

@@ -102,10 +102,6 @@ pipelines:
       filenames: "2025_102_SD.md, 2025_61-FR_INT.md, 2025_61-FR.md, 2025_73_JU.md, 2025_88_GD.md, 2025_94_FC.md, 2025-47-SA-Act.md, 2025-47-SA-R1.md, parasol-earnings-report.md"
       ranker: default
       useGpu: false
-      # embeddingModel: sentence-transformers/nomic-ai/nomic-embed-text-v1.5 ==> default values in ragDefaults
-      # embeddingDimension: "768" ==> default values in ragDefaults
-      # chunkSizeInTokens: "800" ==> default values in ragDefaults
-      # chunkOverlapInTokens: "400" ==> default values in ragDefaults
   scheduler:
     pipelineName: ragas-pipeline
     experimentName: ragas-scoring-experiment
@@ -114,10 +110,7 @@ pipelines:
       gitRepo: alpha-hack-program/llama-stack-demo
       gitContext: materials/datasets
       gitRef: next
-      base_dataset_filename: base_dataset_small.json
-      # model_id: used for dataset generation (Responses API). Default from ragDefaults.modelId.
-      # evaluation_model_id: used for RAGAS scoring (judge). Defaults to model_id if unset.
-      # evaluation_embedding_model_id: embedding model for RAGAS metrics. Defaults to nomic-embed-text-v1.5 if unset.
+      base_dataset_filename: base_dataset_none_small.json
       tools: "none"
       instructions: "You are a helpful assistant that can answer questions about the documents in the vector store."
       retrieval_modes: "vector, hybrid"
