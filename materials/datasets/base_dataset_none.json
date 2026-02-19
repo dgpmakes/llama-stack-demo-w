@@ -1,0 +1,104 @@
+[
+  {
+    "id": "lysmark_001",
+    "question": "What is the tax rate for the first income bracket under the Progressive Income Tax and Surcharge Act?",
+    "ground_truth": "The first bracket applies a 10% tax rate on income up to 10,000.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_002",
+    "question": "When does the Progressive Income Tax and Surcharge Act become effective?",
+    "ground_truth": "The Progressive Income Tax and Surcharge Act becomes effective on 1 September 2025.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_004",
+    "question": "Under the Commercial Obligations and Liquidated Damages Act, if a contract specifies daily penalties of 100 with a maximum cap of 5,000, and the debtor is 60 days late, what is the capped penalty amount before interest, and does interest accrue on the capped or uncapped amount?",
+    "ground_truth": "The base penalty would be 6,000 (60 days × 100), but the contractual maximum cap of 5,000 applies, so the penalty is capped at 5,000. Interest accrues on the capped penalty amount of 5,000, not on the uncapped 6,000.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "lysmark_005",
+    "question": "What is the minimum turnout percentage required for a valid organizational vote under the Organizational Voting and Quorum Act?",
+    "ground_truth": "A minimum turnout of 60% of eligible voters is required for a vote to be considered valid.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_006",
+    "question": "What approval threshold is required to amend an organization's constitutional documents?",
+    "ground_truth": "Amendments to constitutional documents require approval by at least two-thirds (66.7%) of votes cast.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_009",
+    "question": "What is the base income ceiling for public housing assistance eligibility as a percentage of Area Median Income?",
+    "ground_truth": "The base income ceiling is 60% of the applicable Area Median Income (AMI).",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_010",
+    "question": "How is the income ceiling adjusted for households with more than four members?",
+    "ground_truth": "For households with more than four members, the income ceiling is increased by 10%, resulting in an adjusted ceiling of 66% of AMI (calculated as AMI × 0.60 × 1.10 or AMI × 0.66).",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_013",
+    "question": "What is the monthly financial assistance amount for unpaid leave taken to care for a sick parent who requires hospitalization?",
+    "ground_truth": "The monthly assistance amount for Case A (care for first-degree relatives who are sick or injured requiring hospitalization) is €725 per month.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_014",
+    "question": "What is the monthly assistance amount for a single parent taking unpaid leave following the birth of their first child?",
+    "ground_truth": "The monthly assistance amount for Case E (single-parent family with any child) is €500 per month.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_015",
+    "question": "Under the Family Care Unpaid Leave Support Act, what are the residency requirements for family unit members to be eligible for assistance?",
+    "ground_truth": "All family unit members must have effective residence in Lysmark for a minimum of two years prior to the start of unpaid leave, or alternatively, effective residence in Lysmark for five continuous years within the seven immediately preceding years. Exceptions apply to minors in foster care, under guardianship, or joining through adoption.",
+    "difficulty": "medium"
+  },
+  {
+    "id": "lysmark_016",
+    "question": "A person taking unpaid leave to care for their brother who was in a serious accident - does this relationship qualify for assistance under Act No. 2025/47-SA, and if not, why not according to the supplementary regulation?",
+    "ground_truth": "No, this relationship does not qualify. According to Regulation No. 2025/47-SA-R1, siblings are second-degree consanguinity relationships and are explicitly listed as non-qualifying extended family relationships. Only first-degree family relationships (parents, children, spouses, and partners) qualify for unpaid care leave assistance.",
+    "difficulty": "hard"
+  },
+  {
+    "id": "lysmark_021",
+    "question": "What is the surcharge rate applied when total calculated tax exceeds the statutory threshold under the Progressive Income Tax and Surcharge Act?",
+    "ground_truth": "A surcharge of 2% of the total tax liability is applied when the calculated tax exceeds 5,000.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_022",
+    "question": "What is the tax rate applied to income exceeding 10,000 under Act No. 2025/61-FR?",
+    "ground_truth": "Income exceeding 10,000 is taxed at 20% in the second bracket.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_025",
+    "question": "When does the Commercial Obligations and Liquidated Damages Act become effective?",
+    "ground_truth": "The Commercial Obligations and Liquidated Damages Act becomes effective on 1 October 2025.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_026",
+    "question": "Under the Commercial Obligations and Liquidated Damages Act, when does the daily accrual of penalties begin?",
+    "ground_truth": "Penalties accrue on a daily basis from the first day following the agreed deadline.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_029",
+    "question": "What percentage of votes cast is required to pass an ordinary resolution under the Organizational Voting and Quorum Act?",
+    "ground_truth": "Ordinary resolutions require approval by a simple majority, meaning yes votes must exceed 50% of total votes cast.",
+    "difficulty": "easy"
+  },
+  {
+    "id": "lysmark_030",
+    "question": "What is the minimum turnout percentage that organizations may set in their constitutional documents?",
+    "ground_truth": "Organizations may not set turnout requirements below the statutory minimum of 60%, though they may establish higher requirements.",
+    "difficulty": "easy"
+  }
+]
