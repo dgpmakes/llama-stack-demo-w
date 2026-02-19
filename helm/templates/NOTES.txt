@@ -8,6 +8,8 @@ Playground consists of:
 - ChatBot UI
 - Simple API
 
+Node assignment => assigned: {{ .Values.assigned }}
+
 Models deployed:
 {{- $allModels := (include "allModels" . | fromYaml).items }}
 {{- range $allModels }}

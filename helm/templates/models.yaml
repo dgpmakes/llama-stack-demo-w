@@ -86,9 +86,9 @@ spec:
         operator: Exists
     {{- end }}
     {{- with .accelerator }}
-    {{- if $assigned}}
+    {{- if $assigned }}
     nodeSelector:
-      assigned: {{ $assigned }}
+      assigned: "{{ $assigned }}"
     {{- else if .productName }}
     nodeSelector:
       {{ .type }}.product: {{ .productName }}
@@ -218,6 +218,20 @@ spec:
         successThreshold: 1
         failureThreshold: 3
   multiModel: false
+  {{- with .accelerator }}
+  {{- if $assigned }}
+  nodeSelector:
+    assigned: "{{ $assigned }}"
+  {{- else if .productName }}
+  nodeSelector:
+    {{ .type }}.product: {{ .productName }}
+  {{- else if .nodeSelector }}
+  nodeSelector:
+    {{- range $key, $value := .nodeSelector }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
   supportedModelFormats:
     - autoSelect: true
       name: {{ default "vLLM" .format }}
