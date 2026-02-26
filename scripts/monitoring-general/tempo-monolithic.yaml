@@ -1,0 +1,19 @@
+# General (cluster-wide) Tempo. Not managed by any Helm release.
+# Referenced by app-specific Grafana datasources and OTel collector endpoint.
+apiVersion: tempo.grafana.com/v1alpha1
+kind: TempoMonolithic
+metadata:
+  name: data-science-tempomonolithic
+  namespace: redhat-ods-monitoring
+spec:
+  management: Managed
+  ingestion:
+    otlp:
+      grpc:
+        enabled: true
+      http:
+        enabled: true
+  storage:
+    traces:
+      backend: pv
+      size: 10Gi

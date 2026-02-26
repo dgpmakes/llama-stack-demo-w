@@ -1,0 +1,16 @@
+# Merge patch: oc patch dscinitialization default-dsci --type=merge -f dsci-monitoring-patch.yaml
+spec:
+  monitoring:
+    managementState: Managed
+    namespace: redhat-ods-monitoring
+    metrics:
+      replicas: 1
+      storage:
+        retention: "90d"
+        size: "50Gi"
+    traces:
+      sampleRatio: "1.0"
+      storage:
+        backend: pv
+        retention: "2160h0m0s"
+        size: "100Gi"

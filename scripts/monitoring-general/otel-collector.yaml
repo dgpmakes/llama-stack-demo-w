@@ -1,0 +1,25 @@
+# General (cluster-wide) OpenTelemetry collector. Not managed by any Helm release.
+# Sends traces to the general Tempo instance. Referenced by app workloads via
+# data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local.
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: data-science-collector
+  namespace: redhat-ods-monitoring
+spec:
+  mode: deployment
+  replicas: 1
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+    exporters:
+      otlphttp:
+        endpoint: http://tempo-data-science-tempomonolithic.redhat-ods-monitoring.svc.cluster.local:4318
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [otlphttp]

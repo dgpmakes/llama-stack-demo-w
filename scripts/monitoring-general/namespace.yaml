@@ -1,0 +1,5 @@
+# General (cluster-wide) monitoring namespace. Not managed by any Helm release.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: redhat-ods-monitoring
