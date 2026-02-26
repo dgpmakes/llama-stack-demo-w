@@ -1,0 +1,27 @@
+{{- if and .Values.monitoring.enable .Values.monitoring.deployCollector }}
+---
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: {{ .Values.monitoring.collectorName }}
+  namespace: {{ .Values.monitoring.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  mode: deployment
+  replicas: {{ .Values.monitoring.collectorReplicas }}
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+    exporters:
+      otlphttp:
+        endpoint: {{ .Values.monitoring.tempoOtlpHttpEndpoint | quote }}
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [otlphttp]
+{{- end }}

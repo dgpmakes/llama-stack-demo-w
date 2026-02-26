@@ -36,7 +36,7 @@ spec:
       secureJsonData:
         httpHeaderValue1: "redhat-ods-monitoring"
       type: tempo
-      url: 'http://tempo-data-science-tempomonolithic.redhat-ods-monitoring.svc.cluster.local:3200'
+      url: {{ .Values.monitoring.tempoUrl | quote }}
   instanceSelector:
     matchLabels:
       dashboards: "grafana"

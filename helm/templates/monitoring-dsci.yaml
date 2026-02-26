@@ -1,0 +1,91 @@
+{{- if .Values.monitoring.enable }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.app }}-monitoring-patcher
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.app }}-monitoring-patcher
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+rules:
+  - apiGroups:
+      - dscinitialization.opendatahub.io
+    resources:
+      - dscinitializations
+    verbs:
+      - get
+      - patch
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Values.app }}-monitoring-patcher
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Values.app }}-monitoring-patcher
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.app }}-monitoring-patcher
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.app }}-monitoring-patcher
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+spec:
+  template:
+    spec:
+      serviceAccountName: {{ .Values.app }}-monitoring-patcher
+      restartPolicy: OnFailure
+      containers:
+        - name: patch-dsci
+          image: {{ .Values.monitoring.patcherImage | quote }}
+          command:
+            - sh
+            - -c
+          args:
+            - |
+              cat <<'EOF' | kubectl apply -f -
+              apiVersion: dscinitialization.opendatahub.io/v2
+              kind: DSCInitialization
+              metadata:
+                name: {{ .Values.monitoring.dsciName }}
+              spec:
+                monitoring:
+                  managementState: Managed
+                  namespace: {{ .Values.monitoring.namespace }}
+                  metrics:
+                    replicas: {{ .Values.monitoring.metrics.replicas }}
+                    storage:
+                      retention: {{ .Values.monitoring.metrics.retention | quote }}
+                      size: {{ .Values.monitoring.metrics.size | quote }}
+                  traces:
+                    sampleRatio: {{ .Values.monitoring.traces.sampleRatio | quote }}
+                    storage:
+                      backend: {{ .Values.monitoring.traces.storage.backend }}
+                      retention: {{ .Values.monitoring.traces.storage.retention | quote }}
+                      size: {{ .Values.monitoring.traces.storage.size | quote }}
+              EOF
+{{- end }}

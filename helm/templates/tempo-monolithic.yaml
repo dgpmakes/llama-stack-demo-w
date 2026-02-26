@@ -1,0 +1,25 @@
+{{- if and .Values.monitoring.enable .Values.monitoring.deployTempo }}
+---
+apiVersion: tempo.grafana.com/v1alpha1
+kind: TempoMonolithic
+metadata:
+  name: {{ .Values.monitoring.tempoName }}
+  namespace: {{ .Values.monitoring.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  management: Managed
+  ingestion:
+    otlp:
+      grpc:
+        enabled: true
+      http:
+        enabled: true
+  storage:
+    traces:
+      backend: {{ .Values.monitoring.tempoStorageBackend }}
+      size: {{ .Values.monitoring.tempoStorageSize | quote }}
+      {{- if .Values.monitoring.tempoStorageClassName }}
+      storageClassName: {{ .Values.monitoring.tempoStorageClassName | quote }}
+      {{- end }}
+{{- end }}

@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.app }}-traces-dashboard
   namespace: {{ .Release.Namespace }}
 spec:
-  folder: {{ .Values.app }}-folder
+  folder: {{ .Release.Namespace | title }} Dashboards
   instanceSelector:
     matchLabels:
       dashboards: "grafana"
@@ -42,22 +42,22 @@ spec:
           {
             "current": {
               "selected": true,
-              "text": "{{ .Release.Namespace }}",
-              "value": "{{ .Release.Namespace }}"
+              "text": "{{ .Values.app }}",
+              "value": "{{ .Values.app }}"
             },
-            "hide": 2,
+            "hide": 0,
             "includeAll": false,
-            "label": "Namespace Pattern",
+            "label": "Service Name",
             "multi": false,
-            "name": "namespace_pattern",
+            "name": "service_name",
             "options": [
               {
                 "selected": true,
-                "text": "{{ .Release.Namespace }}",
-                "value": "{{ .Release.Namespace }}"
+                "text": "{{ .Values.app }}",
+                "value": "{{ .Values.app }}"
               }
             ],
-            "query": "{{ .Release.Namespace }}",
+            "query": "{{ .Values.app }}",
             "refresh": 0,
             "type": "custom"
           }
@@ -81,7 +81,7 @@ spec:
           "targets": [
             {
               "limit": 200,
-              "query": "{resource.k8s.namespace.name=~\"$namespace_pattern\"}",
+              "query": "{resource.service.name=~\"$service_name\"}",
               "queryType": "traceql",
               "refId": "A",
               "tableType": "traces",

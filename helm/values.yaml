@@ -168,7 +168,7 @@ milvus:
 docsFolder: /data/docs
 
 otelCollector:
-  enabled: false
+  enabled: true
   endpoint: http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318
   protocol: http/protobuf
   tracesEndpoint: http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/traces
@@ -185,6 +185,33 @@ otelCollector:
   bspExportTimeout: 30000
   metricExportInterval: 60000
   telemetrySinks: otel_trace, otel_metric
+
+monitoring:
+  enable: true
+  dsciName: default-dsci
+  namespace: redhat-ods-monitoring
+  patcherImage: registry.redhat.io/openshift4/ose-cli:v4.14
+  deployTempo: true
+  tempoName: data-science-tempomonolithic
+  tempoStorageBackend: pv
+  tempoStorageSize: 10Gi
+  tempoStorageClassName: ""
+  tempoOtlpHttpEndpoint: http://tempo-data-science-tempomonolithic.redhat-ods-monitoring.svc.cluster.local:4318
+  metrics:
+    replicas: 1
+    retention: 90d
+    size: 50Gi
+  traces:
+    sampleRatio: "1.0"
+    storage:
+      backend: pv
+      retention: 2160h0m0s
+      size: 100Gi
+  deployCollector: true
+  collectorName: data-science-collector
+  collectorReplicas: 1
+  tempoUrl: http://tempo-data-science-tempomonolithic.redhat-ods-monitoring.svc.cluster.local:3200
+  prometheusUrl: http://data-science-monitoringstack-prometheus.redhat-ods-monitoring.svc.cluster.local:9090
 
 # Local models - deployed in the cluster (safe to commit to git)
 # Remote models with API tokens should go in values-secrets.yaml as remoteModels

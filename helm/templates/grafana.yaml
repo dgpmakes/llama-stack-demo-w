@@ -1,14 +1,4 @@
 ---
-kind: Secret
-apiVersion: v1
-metadata:
-  name: {{ .Values.app }}-grafana-sa-token
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    kubernetes.io/service-account.name: {{ .Values.app }}-grafana-sa
-    argocd.argoproj.io/sync-wave: "5"
-type: kubernetes.io/service-account-token
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
