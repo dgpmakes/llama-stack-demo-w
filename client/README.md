@@ -1,246 +1,87 @@
-# RAG Loader CLI
+Set project:
 
-A command-line interface for managing Retrieval-Augmented Generation (RAG) operations with LlamaStack.
+```sh
+export PROJECT=llama-stack-demo
 
-## Features
+oc new-project ${PROJECT}
+oc label namespace ${PROJECT} modelmesh-enabled=false opendatahub.io/dashboard=true
 
-- **Document Loading**: Load documents into vector stores for RAG
-- **Vector Search**: Search documents with semantic similarity
-- **Agent Commands**: Run AI agents with different implementations
-  - Default Agent: Native Llama Stack with MCP servers
-  - LangChain Agent: LangChain 1.0 with MCP adapters (see [LANGCHAIN_AGENT_README.md](./LANGCHAIN_AGENT_README.md))
-- **Model Management**: List and inspect available models
-- **Tool Management**: Manage MCP tool groups
+export APPS_DOMAIN=$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')
 
-## Installation
-
-```bash
-# Install dependencies
-uv sync
-
-# Or install directly with pip
-pip install -e .
 ```
 
-## Environment Variables
-
-Set the following environment variables before running commands:
-
-```bash
-# LlamaStack connection
-export LLAMA_STACK_HOST="localhost"
-export LLAMA_STACK_PORT="8080"
-export LLAMA_STACK_SECURE="false"
-
-# Embedding model configuration
-export EMBEDDING_MODEL="granite-embedding-125m"
+```sh
+# export EMBEDDING_MODEL="granite-embedding-125m"
+export EMBEDDING_MODEL="sentence-transformers/nomic-ai/nomic-embed-text-v1.5"
 export EMBEDDING_DIMENSION="768"
 export EMBEDDING_MODEL_PROVIDER="sentence-transformers"
-export CHUNK_SIZE_IN_TOKENS="512"
-
-# Vector store configuration
 export VECTOR_STORE_NAME="rag-store"
-export DOCS_FOLDER="./docs"
-
-# Search configuration
+export VECTOR_STORE_PROVIDER_ID="milvus"
 export RANKER="default"
 export SCORE_THRESHOLD="0.8"
 export MAX_NUM_RESULTS="10"
 export TEST_QUERY="Tell me about taxes in Lysmark."
+export DOCS_FOLDER="./docs"
+export CHUNK_SIZE_IN_TOKENS="800"
+export CHUNK_OVERLAP_IN_TOKENS="400"
+export LLAMA_STACK_HOST="llama-stack-demo-route-${PROJECT}.${APPS_DOMAIN}"
+export LLAMA_STACK_PORT="443"
+export LLAMA_STACK_SECURE="True"
+export LOG_LEVEL="DEBUG"
 ```
 
-## Usage
+Run as code:
 
-### Load Command
+```sh
+cd client
+uv sync
+source .venv/bin/activate
 
-Load documents from a folder into the vector store:
+./run.sh load
 
-```bash
-# Basic usage
-python run.py load
-
-# With delay on failure
-python run.py load --delay 5
+./run.sh agent --input 'My mother had an accident, can I get access to the unpaid leave aid in Lysmark? How much would I get monthly?' --model llama-3-1-8b-w4a16/llama-3-1-8b-w4a16 --agent-type default
 ```
 
-This command will:
-1. Connect to LlamaStack
-2. List and delete existing vector stores
-3. Upload documents from the configured folder
-4. Create a new vector store with the documents
-5. Run a test search query
+**Streamlit Chat (app2 – portazgo):**
 
-### Search Command
-
-Search the vector store for relevant documents:
-
-```bash
-# Basic search
-python run.py search --query "Tell me about taxes"
-
-# Search with custom parameters
-python run.py search --query "What is the capital?" --max-results 5
-
-# Search specific vector store
-python run.py search --query "Investment info" --vector-store-name rag-store
-
-# Advanced search with custom scoring
-python run.py search \
-  --query "Tell me about regulations" \
-  --max-results 20 \
-  --score-threshold 0.7 \
-  --ranker "default"
+```sh
+cd client
+uv sync
+uv run streamlit run app2.py
 ```
 
-### Search Command Options
+Run as an image:
 
-- `--query`: (Required) The search query text
-- `--vector-store-name`: Name of the vector store to search (default: uses the latest)
-- `--max-results`: Maximum number of results to return (default: 10)
-- `--score-threshold`: Minimum score threshold for results (default: 0.8)
-- `--ranker`: Ranker to use for scoring (default: "default")
+```sh
+./image.sh cmd load
 
-### Agent Command
-
-Run AI agents with different implementations:
-
-```bash
-# Default agent (native Llama Stack)
-python run.py agent --agent-type default --input "What is the weather?"
-
-# LangChain agent (LangChain 1.0 with MCP adapters)
-python run.py agent --agent-type lang_chain --input "Analyze financial data"
-
-# With custom model
-python run.py agent \
-  --agent-type lang_chain \
-  --input "What are the tax implications?" \
-  --model "meta-llama/Llama-3.2-3B-Instruct"
-
-# With custom system instructions
-python run.py agent \
-  --agent-type default \
-  --input "Hello" \
-  --instructions "You are a friendly assistant"
+./image.sh cmd agent --input 'My mother had an accident, can I get access to the unpaid leave aid in Lysmark? How much would I get monthly?' --model llama-3-1-8b-w4a16/llama-3-1-8b-w4a16 --agent-type default
 ```
 
-**See [LANGCHAIN_AGENT_README.md](./LANGCHAIN_AGENT_README.md) for detailed LangChain agent documentation.**
 
-### Model Command
 
-List and inspect available models:
+```sh
+SYSTEM_INSTRUCTIONS="You are a helpful AI assistant that uses tools to help citizens of the Republic of Lysmark. Answers should be concise and human readable. AVOID references to tools or function calling nor show any JSON. Infer parameters for function calls or instead use default values or request the needed information from the user. Call the RAG tool first if unsure. Parameter single_parent_family only is necessary if birth/adoption/foster_care otherwise use false."
+MODEL_NAME="llama-3-1-8b-w4a16"
+AGENT_TYPE="lang_chain"
 
-```bash
-# List all models
-python run.py model list
-
-# List with details
-python run.py model list --verbose
-
-# Filter by provider and type
-python run.py model list --provider meta --type llm
-
-# Get model info
-python run.py model info --model "meta-llama/Llama-3.2-3B-Instruct"
+curl -X 'POST' \
+  'http://0.0.0.0:8700/agents/execute' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "agent_type": "'"${AGENT_TYPE}"'",
+  "input_text": "Tell me how much taxes do I have to pay if my yearly income is 43245€",
+  "model_name": "'"${MODEL_NAME}"'",
+  "system_instructions": "'"${SYSTEM_INSTRUCTIONS}"'",
+  "tools": [
+      { 
+        "type": "mcp",
+        "server_label": "dmcp",
+        "server_url": "https://compatibility-engine-llama-stack-demo.apps.ocp.sandbox3322.opentlc.com/sse",
+        "transport": "sse",
+        "require_approval": "never"
+      }
+  ]
+}'
 ```
-
-### Tool Command
-
-Manage MCP tool groups:
-
-```bash
-# List all tool groups
-python run.py tool groups
-
-# List with details
-python run.py tool groups --verbose
-
-# List all tools from all groups
-python run.py tool list --all
-
-# List tools from specific group
-python run.py tool list --group "my-tool-group"
-
-# List tools with details
-python run.py tool list --all --verbose
-```
-
-## Examples
-
-### Complete Workflow
-
-```bash
-# 1. Load documents
-python run.py load
-
-# 2. Search the loaded documents
-python run.py search --query "What are the tax rates?"
-
-# 3. Search with more results
-python run.py search --query "Investment regulations" --max-results 20
-```
-
-### Using with Docker
-
-```bash
-# Run load command in container
-docker run --rm \
-  -v $(pwd)/docs:/app/docs \
-  -e LLAMA_STACK_HOST="llama-stack" \
-  -e LLAMA_STACK_PORT="8080" \
-  -e EMBEDDING_MODEL="granite-embedding-125m" \
-  -e EMBEDDING_DIMENSION="768" \
-  -e EMBEDDING_MODEL_PROVIDER="sentence-transformers" \
-  -e DOCS_FOLDER="/app/docs" \
-  rag-loader:latest python run.py load
-```
-
-## Module Usage
-
-You can also import and use the functions directly in your Python code:
-
-```python
-from rag_loader import (
-    create_client,
-    load_documents_to_vector_store,
-    search_vector_store,
-    list_vector_stores
-)
-
-# Load documents
-vector_store = load_documents_to_vector_store(delay_seconds=5)
-
-# Or use individual functions
-client = create_client(host="localhost", port=8080, secure=False)
-vector_stores = list_vector_stores(client)
-results = search_vector_store(
-    client=client,
-    vector_store_id=vector_stores[0].id,
-    query="Tell me about taxes",
-    max_num_results=10
-)
-```
-
-## Troubleshooting
-
-### Connection Errors
-
-If you get connection errors, verify:
-- LlamaStack is running and accessible
-- `LLAMA_STACK_HOST` and `LLAMA_STACK_PORT` are set correctly
-- Network connectivity between client and LlamaStack
-
-### No Vector Stores Found
-
-If search fails with "No vector stores found":
-1. Run the `load` command first to create a vector store
-2. Verify the load command completed successfully
-3. Check that documents were uploaded to the vector store
-
-### Module Import Errors
-
-If you get import errors when running `run.py`:
-- Ensure you're in the correct directory
-- Verify dependencies are installed: `uv sync`
-- Check Python version: requires Python >= 3.12
-

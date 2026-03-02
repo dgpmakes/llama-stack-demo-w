@@ -43,7 +43,7 @@ lsdResources:
     cpu: 2
     memory: 8Gi
 
-llamaStackDemoCoreImage: quay.io/atarazana/llama-stack-demo-core:0.5.3
+llamaStackDemoCoreImage: quay.io/atarazana/llama-stack-demo-core:0.6.2
 
 loaderDelay: 15
 loaderJobRetries: 60

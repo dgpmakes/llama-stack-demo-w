@@ -39,22 +39,23 @@ RUN echo "Using Python 🐍 from: $(which python)" && \
     uv pip install --python $(which python) --system .
 
 # Copy scripts
-COPY run.sh .
+# COPY run.sh .
 COPY start-api.sh .
 COPY start-app.sh .
 
 # Make all scripts executable
-RUN chmod +x run.sh start-api.sh start-app.sh
+# RUN chmod +x run.sh start-api.sh start-app.sh
+RUN chmod +x start-api.sh start-app.sh
 
 # Copy all application code
 COPY health-server.py .
-COPY files.py .
+# COPY files.py .
 COPY utils.py .
-COPY vector_stores.py .
-COPY streaming_logger.py .
-COPY agent_events.py .
-COPY commands/ ./commands/
-COPY run.py .
+# COPY vector_stores.py .
+# COPY streaming_logger.py .
+# COPY agent_events.py .
+# COPY commands/ ./commands/
+# COPY run.py .
 COPY server.py .
 COPY app.py .
 

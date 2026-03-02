@@ -23,7 +23,7 @@ echo "LlamaStack: ${LLAMA_STACK_HOST}:${LLAMA_STACK_PORT}"
 echo "Chat App: http://localhost:8501"
 echo ""
 
-# Start health server in background
+# Start health server in background (Flask + Streamlit conflict in same process on reload)
 echo "Starting health server on port ${HEALTH_PORT:-8081}..."
 python health-server.py &
 HEALTH_PID=$!

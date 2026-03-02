@@ -161,6 +161,57 @@ wheels = [
 ]
 
 [[package]]
+name = "client"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "fastapi" },
+    { name = "fire" },
+    { name = "flask" },
+    { name = "langchain" },
+    { name = "langchain-core" },
+    { name = "langchain-mcp-adapters" },
+    { name = "langchain-openai" },
+    { name = "langgraph" },
+    { name = "llama-stack-client" },
+    { name = "portazgo" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "streamlit" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "black" },
+    { name = "isort" },
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "black", marker = "extra == 'dev'" },
+    { name = "fastapi", specifier = "==0.121.3" },
+    { name = "fire", specifier = "==0.7.1" },
+    { name = "flask", specifier = "==3.1.2" },
+    { name = "isort", marker = "extra == 'dev'" },
+    { name = "langchain", specifier = "==1.1.0" },
+    { name = "langchain-core", specifier = "==1.1.0" },
+    { name = "langchain-mcp-adapters", specifier = "==0.1.13" },
+    { name = "langchain-openai", specifier = "==1.1.0" },
+    { name = "langgraph", specifier = "==1.0.3" },
+    { name = "llama-stack-client", specifier = "==0.3.5" },
+    { name = "portazgo", specifier = "==0.1.5" },
+    { name = "pydantic", specifier = "==2.11.7" },
+    { name = "pytest", marker = "extra == 'dev'" },
+    { name = "pyyaml", specifier = "==6.0.2" },
+    { name = "requests", specifier = "==2.32.5" },
+    { name = "streamlit", specifier = "==1.51.0" },
+    { name = "uvicorn", extras = ["standard"], specifier = "==0.38.0" },
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -862,6 +913,19 @@ wheels = [
 ]
 
 [[package]]
+name = "portazgo"
+version = "0.1.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "llama-stack-client" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b9/65/c2409ff6a5ac5dae032f06791da196011132ddcfcc86b56e347040d07bcb/portazgo-0.1.5.tar.gz", hash = "sha256:ffae65aaa3a5ed669d8b4ec6ce24a41259a38400aef7cb412da536854adc91c8", size = 17796 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d4/5e/de70fe5424676d04c41b9bbda14ba9c232784bd677b25201cd9adaabf493/portazgo-0.1.5-py3-none-any.whl", hash = "sha256:50e370e13f1e9725823a62a9128d7580f30b2446fe8522157f3efdbb90d16b72", size = 17899 },
+]
+
+[[package]]
 name = "prompt-toolkit"
 version = "3.0.52"
 source = { registry = "https://pypi.org/simple" }
@@ -1094,55 +1158,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c9/1f/4f998c900485e5c0ef43838363ba4a9723ac0ad73a9dc42068b12aaba4e4/PyYAML-6.0.2-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:8b9c7197f7cb2738065c481a0461e50ad02f18c78cd75775628afb4d7137fb3b", size = 756611 },
     { url = "https://files.pythonhosted.org/packages/df/d1/f5a275fdb252768b7a11ec63585bc38d0e87c9e05668a139fea92b80634c/PyYAML-6.0.2-cp312-cp312-win32.whl", hash = "sha256:ef6107725bd54b262d6dedcc2af448a266975032bc85ef0172c5f059da6325b4", size = 140591 },
     { url = "https://files.pythonhosted.org/packages/0c/e8/4f648c598b17c3d06e8753d7d13d57542b30d56e6c2dedf9c331ae56312e/PyYAML-6.0.2-cp312-cp312-win_amd64.whl", hash = "sha256:7e7401d0de89a9a855c839bc697c079a4af81cf878373abd7dc625847d25cbd8", size = 156338 },
-]
-
-[[package]]
-name = "rag-loader"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "fastapi" },
-    { name = "fire" },
-    { name = "flask" },
-    { name = "langchain" },
-    { name = "langchain-core" },
-    { name = "langchain-mcp-adapters" },
-    { name = "langchain-openai" },
-    { name = "langgraph" },
-    { name = "llama-stack-client" },
-    { name = "pydantic" },
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "streamlit" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "black" },
-    { name = "isort" },
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "black", marker = "extra == 'dev'" },
-    { name = "fastapi", specifier = "==0.121.3" },
-    { name = "fire", specifier = "==0.7.1" },
-    { name = "flask", specifier = "==3.1.2" },
-    { name = "isort", marker = "extra == 'dev'" },
-    { name = "langchain", specifier = "==1.1.0" },
-    { name = "langchain-core", specifier = "==1.1.0" },
-    { name = "langchain-mcp-adapters", specifier = "==0.1.13" },
-    { name = "langchain-openai", specifier = "==1.1.0" },
-    { name = "langgraph", specifier = "==1.0.3" },
-    { name = "llama-stack-client", specifier = "==0.3.5" },
-    { name = "pydantic", specifier = "==2.11.7" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "pyyaml", specifier = "==6.0.2" },
-    { name = "requests", specifier = "==2.32.5" },
-    { name = "streamlit", specifier = "==1.51.0" },
-    { name = "uvicorn", extras = ["standard"], specifier = "==0.38.0" },
 ]
 
 [[package]]

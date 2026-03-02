@@ -20,11 +20,9 @@ from llama_stack_client import LlamaStackClient
 from llama_stack_client.types.model import Model
 from llama_stack_client.types import VectorStore
 
-from utils import create_client, list_models, get_rag_context
-from commands.model_command import list_command as model_list_command
-from commands.tool_command import groups_command as tool_groups_command
-from commands.agent_command import agent_command
+from portazgo import Agent, discover_mcp_tools, resolve_vector_store_id
 
+from utils import create_client, list_models, get_rag_context
 
 # Initialize FastAPI app with enhanced OpenAPI configuration
 app = FastAPI(
@@ -228,7 +226,7 @@ class AgentTypeResponse(BaseModel):
             "example": {
                 "agent_types": ["default", "lang_chain", "lang_graph"],
                 "descriptions": {
-                    "default": "Uses Llama Stack's native MCP integration",
+                    "default": "Uses portazgo Agent with Llama Stack Responses API",
                     "lang_chain": "LangChain 1.0 agent with MCP adapters",
                     "lang_graph": "LangGraph ReAct agent with MCP"
                 }
@@ -254,24 +252,51 @@ async def execute_agent_async(
     tools: Optional[List[Dict[str, Any]]] = None
 ) -> tuple[str, List[str], Dict[str, Any]]:
     """
-    Execute an agent asynchronously, handling both sync and async agent types.
+    Execute an agent asynchronously, using portazgo for default agent type.
     
-    This function is designed to be called from FastAPI async endpoints to avoid
-    the "asyncio.run() cannot be called from a running event loop" error.
+    For agent_type "default", uses portazgo Agent (Llama Stack Responses API).
+    For lang_chain and lang_graph, falls back to agent_command implementations.
     """
-    from commands.agent_command import default_agent, langchain_agent, langgraph_agent
+    from commands.agent_command import langchain_agent, langgraph_agent
     
     vector_store_name = os.environ.get("VECTOR_STORE_NAME", None)
     
     if agent_type == "default":
-        # Default agent is synchronous
-        response, structured_data = default_agent(
+        # Use portazgo Agent (Llama Stack Responses API)
+        client = get_client()
+        try:
+            vector_store_id = resolve_vector_store_id(client, vector_store_name) if vector_store_name else ""
+        except ValueError:
+            vector_store_id = ""
+        
+        # Build mcp_tools: "all", "none", or comma-separated tool names from request
+        if tools and len(tools) > 0:
+            tool_names = []
+            for t in tools:
+                name = t.get("name") or t.get("mcp_server") or t.get("server_label")
+                if name:
+                    tool_names.append(str(name))
+            tools_str = ",".join(tool_names) if tool_names else "all"
+        else:
+            tools_str = "all"
+        mcp_tools = discover_mcp_tools(client, tools_str)
+        
+        agent = Agent(type="default")
+        result = agent.invoke(
+            client=client,
             input_text=input_text,
-            model_name=model_name,
-            system_instructions=system_instructions,
-            tools=tools,
-            vector_store_name=vector_store_name
+            model_id=model_name,
+            vector_store_id=vector_store_id,
+            mcp_tools=mcp_tools,
+            instructions=system_instructions,
+            strip_think_blocks=True,
         )
+        response = result.get("answer", "") or ""
+        structured_data = {
+            "events": [],
+            "tool_calls": result.get("tool_calls", []),
+            "final_response": response,
+        }
         return response, [], structured_data
     
     elif agent_type == "lang_chain":
@@ -726,7 +751,7 @@ async def get_agent_types():
     
     **Available Agent Types:**
     
-    1. **default**: Uses Llama Stack's native MCP integration with server-side tool calling
+    1. **default**: Uses portazgo Agent with Llama Stack Responses API (server-side MCP)
        - Best for: General purpose use with MCP servers
        - Tool execution: Server-side
     
@@ -745,7 +770,7 @@ async def get_agent_types():
     return AgentTypeResponse(
         agent_types=["default", "lang_chain", "lang_graph"],
         descriptions={
-            "default": "Uses Llama Stack's native MCP integration with server-side tool calling",
+            "default": "Uses portazgo Agent with Llama Stack Responses API (server-side MCP)",
             "lang_chain": "LangChain 1.0 agent with MCP adapters for client-side tool execution",
             "lang_graph": "LangGraph ReAct agent with MCP adapters using LangChain"
         }

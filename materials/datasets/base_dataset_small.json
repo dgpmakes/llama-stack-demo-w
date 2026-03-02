@@ -13,8 +13,8 @@
   },
   {
     "id": "lysmark_003",
-    "question": "If a taxpayer earns 40,000 in income, what is their total tax liability including any applicable surcharge?",
-    "ground_truth": "For income of 40,000, the base tax is 7,000 (1,000 on the first 10,000 at 10% plus 6,000 on the remaining 30,000 at 20%). Since the base tax exceeds 5,000, a 2% surcharge of 140 applies, making the total tax liability 7,140.",
+    "question": "If a taxpayer earns 43245 in income, what is their total tax liability including any applicable surcharge?",
+    "ground_truth": "For income of 43245, the base tax is 7,000 (1,000 on the first 10,000 at 10% plus 6,000 on the remaining 30,000 at 20%). Since the base tax exceeds 5,000, a 2% surcharge of 140 applies, making the total tax liability 7,140.",
     "difficulty": "medium"
   },
   {
