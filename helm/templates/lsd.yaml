@@ -19,6 +19,10 @@ spec:
       configMapName: {{ .Values.app }}-run
     containerSpec:
       env:
+        - name: TRUST_REMOTE_CODE
+          value: "1"
+        - name: HF_TRUST_REMOTE_CODE
+          value: "1"
         {{- $appName := .Values.app }}
         {{- $allModels := (include "allModels" $ | fromYaml).items }}
         {{- range $allModels }}

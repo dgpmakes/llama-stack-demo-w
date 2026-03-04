@@ -308,7 +308,7 @@ def resolve_vector_store(
     packages_to_install=[
         f"llama-stack-client=={LLAMA_STACK_CLIENT_VERSION}",
         "httpx",
-        "portazgo @ git+https://github.com/alpha-hack-program/portazgo.git",
+        "portazgo==0.2.0",
     ],
 )
 def generate_ragas_dataset(
@@ -325,6 +325,8 @@ def generate_ragas_dataset(
     file_search_max_tokens_per_chunk: int = 512,
     ranker: str = "default",
     force_file_search: bool = False,
+    agent_type: str = "default",  # default | lang-graph
+    pattern: str = "simple",  # simple | plan_execute
 ):
     """
     Generate RAGAS-compatible dataset with RAG answers and contexts.
@@ -346,6 +348,8 @@ def generate_ragas_dataset(
         file_search_max_tokens_per_chunk: Max tokens per chunk in results
         ranker: Ranker to use for scoring retrieved chunks (e.g. "default")
         force_file_search: If True, pre-fetch RAG chunks and inject as context (no file_search tool)
+        agent_type: Agent backend: "default" (Llama Stack Responses API) or "lang-graph"
+        pattern: Execution pattern: "simple" (single call) or "plan_execute" (planner then executor)
     """
     import json
     import os
@@ -381,7 +385,7 @@ def generate_ragas_dataset(
     mcp_tools = json.loads(mcp_tools_json) if mcp_tools_json else []
     max_chunks_int = int(file_search_max_chunks)
 
-    print("\n[CONFIG] Using portazgo Agent (default backend)...")
+    print(f"\n[CONFIG] Using portazgo Agent (type={agent_type}, pattern={pattern})...")
     if vector_store_id:
         print(
             f"   [OK] file_search (vector store: {vector_store_id}, "
@@ -399,7 +403,7 @@ def generate_ragas_dataset(
     print(f"Model: {model_id}")
     print(f"Vector Store: {vector_store_id}\n")
 
-    agent = Agent(type="default")
+    agent = Agent(type=agent_type)
     ragas_dataset = agent.generate_ragas_dataset(
         base_dataset=base_dataset,
         client=client,
@@ -413,6 +417,7 @@ def generate_ragas_dataset(
         file_search_score_threshold=file_search_score_threshold,
         file_search_max_tokens_per_chunk=file_search_max_tokens_per_chunk,
         force_file_search=force_file_search,
+        pattern=pattern,
     )
 
     success_count = sum(1 for e in ragas_dataset if not e.get("error"))
@@ -819,6 +824,8 @@ def pipeline(
     file_search_max_tokens_per_chunk: int = 512,
     ranker: str = "default",
     force_file_search: bool = False,
+    agent_type: str = "default",  # default | lang-graph
+    pattern: str = "simple",  # simple | plan_execute
     metrics: str = DEFAULT_METRICS,
     mode: str = "inline",
     batch_size: int = 0,
@@ -831,6 +838,8 @@ def pipeline(
 
     model_id: LLM used to generate the RAGAS dataset (Responses API with file_search).
     evaluation_model_id: LLM used as RAGAS judge for scoring metrics (can be the same or different).
+    agent_type: Agent backend ("default" or "lang-graph").
+    pattern: Execution pattern ("simple" or "plan_execute").
 
     DAG:
     - load_base_dataset_from_git, resolve_vector_store, discover_mcp_tools (parallel)
@@ -894,6 +903,8 @@ def pipeline(
         file_search_max_tokens_per_chunk=file_search_max_tokens_per_chunk,
         ranker=ranker,
         force_file_search=force_file_search,
+        agent_type=agent_type,
+        pattern=pattern,
     )
     generate_task.after(load_task, resolve_task, discover_task)
     kubernetes.use_config_map_as_env(

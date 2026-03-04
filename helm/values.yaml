@@ -14,8 +14,10 @@ routeTimeout: 1m
 # RAG default values
 ragDefaults:
   embeddingModel:
-    modelId: nomic-embed-text-v1.5
-    providerModelId: nomic-ai/nomic-embed-text-v1.5
+    # modelId: nomic-embed-text-v1.5
+    modelId: granite-embedding-125m-english
+    # providerModelId: nomic-ai/nomic-embed-text-v1.5
+    providerModelId: ibm-granite/granite-embedding-125m-english
     vectorDimension: 768
     modelProvider: sentence-transformers
   chunkSizeInTokens: 800
@@ -119,6 +121,8 @@ pipelines:
       file_search_max_tokens_per_chunk: 512
       ranker: "default"
       force_file_search: true
+      agent_type: "default"  # default | lang-graph
+      pattern: "simple"     # simple | plan_execute
       metrics: "answer_relevancy,faithfulness,context_precision,context_recall"
       mode: "inline" # RAGAS evaluation mode (e.g. inline or remote)
       batch_size: 0

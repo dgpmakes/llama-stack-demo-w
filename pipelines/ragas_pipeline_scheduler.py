@@ -172,6 +172,17 @@ def parse_args():
         help="Pre-fetch RAG chunks and inject as context (no file_search tool)",
     )
     parser.add_argument(
+        "--agent-type",
+        dest="agent_type",
+        default=os.environ.get("RAGAS_SCHEDULER_AGENT_TYPE", "default"),
+        help="Agent backend: default (Llama Stack Responses API) or lang-graph",
+    )
+    parser.add_argument(
+        "--pattern",
+        default=os.environ.get("RAGAS_SCHEDULER_PATTERN", "simple"),
+        help="Execution pattern: simple (single call) or plan_execute (planner then executor)",
+    )
+    parser.add_argument(
         "--metrics",
         default=os.environ.get(
             "RAGAS_SCHEDULER_METRICS",
@@ -355,6 +366,8 @@ def main():
             "file_search_max_tokens_per_chunk": args.file_search_max_tokens_per_chunk,
             "ranker": args.ranker,
             "force_file_search": args.force_file_search,
+            "agent_type": args.agent_type,
+            "pattern": args.pattern,
             "metrics": args.metrics,
             "mode": args.mode,
             "batch_size": args.batch_size,
