@@ -869,7 +869,7 @@ wheels = [
 
 [[package]]
 name = "llama-stack-client"
-version = "0.3.5"
+version = "0.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -888,9 +888,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/34/ff/b4bb891249379849e6e273a6254998c7e08562613ca4020817af2da9498e/llama_stack_client-0.3.5.tar.gz", hash = "sha256:2d954429347e920038709ae3e026c06f336ce570bd41245fc4e1e54c78879485", size = 335659 }
+sdist = { url = "https://files.pythonhosted.org/packages/5d/b5/fdfef39a1dedc319b98782a3b2e047b9aae394ca59010fb25146aef5edca/llama_stack_client-0.4.2.tar.gz", hash = "sha256:1277bf563531d9bc476e305f2d2bead9900986d426a2e32c9adf4b6a464804c3", size = 352951 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/10/84a4f0ef1cc13f44a692e55bed6a55792671e5320c95a8fd581e02848d61/llama_stack_client-0.3.5-py3-none-any.whl", hash = "sha256:b98acdc660d60839da8b71d5ae59531ba7f059e3e9656ca5ca20edca70f7d6a2", size = 425244 },
+    { url = "https://files.pythonhosted.org/packages/5f/af/e1c5065b06f98f832a9f74cb8e092e88fd0c10fdf670ab2aecd614548768/llama_stack_client-0.4.2-py3-none-any.whl", hash = "sha256:d6e1c73391bdc3494fe1fa9ce7575a4749d13d111718e458e874ece544988729", size = 375941 },
 ]
 
 [[package]]
@@ -1184,22 +1184,22 @@ dependencies = [
 requires-dist = [
     { name = "kfp", extras = ["kubernetes"], specifier = ">=2.13.0" },
     { name = "langchain-openai", specifier = ">=0.3.0" },
-    { name = "llama-stack-client", specifier = "==0.3.5" },
-    { name = "portazgo", specifier = "==0.1.2" },
+    { name = "llama-stack-client", specifier = "==0.4.2" },
+    { name = "portazgo", specifier = "==0.2.0" },
     { name = "ragas", specifier = "==0.4.2" },
 ]
 
 [[package]]
 name = "portazgo"
-version = "0.1.2"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "httpx" },
+    { name = "langgraph" },
     { name = "llama-stack-client" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7b/31/e48915150f5e8fc12fa48a26f0fa86d02289a95300fe7eb8a37923a5230c/portazgo-0.1.2.tar.gz", hash = "sha256:001eea2cc48a511a5ffadace238ede59fe950598eadf0305775418dd1d796e22", size = 16266 }
+sdist = { url = "https://files.pythonhosted.org/packages/a4/4e/e1bf4a5f97acb9b4888fb4e0f12860022eb34c582521311a104d019d60d6/portazgo-0.2.0.tar.gz", hash = "sha256:4fd35e6130e768cd21d5f0da5bdf6d700e22102d5154ce0d3e4a5951d4032195", size = 23499 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ae/74/5287d0c05532df9305a122dc5670397644aa7830c05e761d129465c6a739/portazgo-0.1.2-py3-none-any.whl", hash = "sha256:f1a485eee49600b696099c96df7937d2b0855d119e316610dc842418bf8c62f2", size = 15688 },
+    { url = "https://files.pythonhosted.org/packages/05/8a/c2ec799941743a6f77157c6b00d22721fbbabf30c71150a722a89da538f5/portazgo-0.2.0-py3-none-any.whl", hash = "sha256:2f5f8431c883120a0a7e8f7d1565d0bea3f858880b4bb686d0cb4821db578e9d", size = 24058 },
 ]
 
 [[package]]

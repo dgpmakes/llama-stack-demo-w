@@ -7,9 +7,12 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "kfp[kubernetes] >= 2.13.0",
     "langchain-openai>=0.3.0",
-    "llama-stack-client==0.3.5",
+    # "llama-stack-client==0.3.5",
+    "llama-stack-client==0.4.2",
     "ragas==0.4.2",
-    "portazgo==0.1.2",
+    # "portazgo @ file:///Users/cvicensa/Projects/openshift/alpha-hack-program/portazgo",
+    "portazgo==0.2.0",
+    # "portazgo==0.1.2",
 ]
 
 [tool.setuptools.packages.find]

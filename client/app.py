@@ -56,10 +56,11 @@ def fetch_models() -> List[Dict[str, str]]:
     try:
         client = get_cached_client()
         models = list_models(client)
+        meta = lambda m: m.custom_metadata or {}
         return [
-            {"identifier": m.identifier, "provider": m.provider_id, "type": m.api_model_type}
+            {"identifier": m.id, "provider": meta(m).get("provider_id", ""), "type": meta(m).get("model_type", "")}
             for m in models
-            if m.api_model_type == "llm"
+            if meta(m).get("model_type") == "llm"
         ]
     except Exception as e:
         st.error(f"Error fetching models: {e}")
@@ -71,7 +72,9 @@ def fetch_vector_store_names() -> List[str]:
     """Fetch vector store names via portazgo (for dropdown)."""
     try:
         client = get_cached_client()
-        return list_vector_store_names(client)
+        vector_stores_names = list_vector_store_names(client)
+        print(f"Vector stores names: {vector_stores_names}")
+        return vector_stores_names
     except Exception as e:
         st.error(f"Error fetching vector stores: {e}")
         return []
@@ -117,13 +120,13 @@ with st.sidebar:
         "Select Agent",
         options=["default", "lang_graph"],
         index=["default", "lang_graph"].index(st.session_state.agent_type),
-        help="default: Llama Stack Responses API | lang_graph: not yet implemented",
+        help="default: Llama Stack Responses API | lang_graph: LangGraph Agent",
     )
     st.session_state.agent_type = agent_type
     st.info(
         "default: portazgo (Llama Stack Responses API)"
         if agent_type == "default"
-        else "lang_graph: NotImplementedError until implemented"
+        else "lang_graph: LangGraph Agent"
     )
 
     st.divider()

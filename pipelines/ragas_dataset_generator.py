@@ -177,15 +177,20 @@ def generate_ragas_dataset(
     file_search_max_chunks: int = 5,
     file_search_score_threshold: float = 0.7,
     file_search_max_tokens_per_chunk: int = 512,
+    agent_type: str = "default",
+    pattern: str = "simple",
 ) -> List[Dict[str, Any]]:
     """
-    Generate RAGAS dataset by querying the RAG system via portazgo's default Agent
-    (Llama Stack Responses API). Same logical behavior as generate_ragas_dataset in ragas_pipeline.py.
+    Generate RAGAS dataset by querying the RAG system via portazgo Agent.
+    Same logical behavior as generate_ragas_dataset in ragas_pipeline.py.
+
+    agent_type: "default" (Llama Stack Responses API) or "lang-graph".
+    pattern: "simple" (single call) or "plan_execute" (planner selects tools, then executor).
 
     When force_file_search is True, RAG chunks are pre-fetched and injected as context
     (no file_search tool).
     """
-    agent = Agent(type="default")
+    agent = Agent(type=agent_type)
     return agent.generate_ragas_dataset(
         base_dataset=base_dataset,
         client=client,
@@ -199,6 +204,7 @@ def generate_ragas_dataset(
         file_search_max_chunks=file_search_max_chunks,
         file_search_score_threshold=file_search_score_threshold,
         file_search_max_tokens_per_chunk=file_search_max_tokens_per_chunk,
+        pattern=pattern,
     )
 
 
@@ -261,6 +267,18 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Pre-fetch RAG chunks and inject as context (no file_search tool)",
     )
+    parser.add_argument(
+        "--agent-type",
+        choices=["default", "lang-graph"],
+        default="default",
+        help="Agent backend: default (Llama Stack Responses API) or lang-graph",
+    )
+    parser.add_argument(
+        "--pattern",
+        choices=["simple", "plan_execute"],
+        default="simple",
+        help="Pattern: simple (single call) or plan_execute (planner selects tools, then executor)",
+    )
 
     args = parser.parse_args()
     # Normalize: prefer positional, then --base-dataset
@@ -318,6 +336,8 @@ def main() -> int:
             file_search_score_threshold=args.file_search_score_threshold,
             file_search_max_tokens_per_chunk=args.file_search_max_tokens_per_chunk,
             force_file_search=args.force_file_search,
+            agent_type=args.agent_type,
+            pattern=args.pattern,
         )
     except ValueError as e:
         err = str(e)

@@ -24,10 +24,11 @@ from kfp.kubernetes import add_node_selector_json, add_toleration_json
 # https://github.com/red-hat-data-services/rhoai-disconnected-install-helper/blob/main/rhoai-2.23.md
 PYTORCH_CUDA_IMAGE = "quay.io/modh/odh-pipeline-runtime-pytorch-cuda-py312-ubi9@sha256:72ff2381e5cb24d6f549534cb74309ed30e92c1ca80214669adb78ad30c5ae12"
 
+LLAMA_STACK_CLIENT_VERSION = "0.4.2"
 
 @dsl.component(
     base_image=PYTORCH_CUDA_IMAGE,
-    packages_to_install=["llama-stack-client==0.3.5", "fire", "requests"],
+    packages_to_install=[f"llama-stack-client=={LLAMA_STACK_CLIENT_VERSION}", "fire", "requests"],
 )
 def register_vector_store_and_files(
     git_repo: str,
@@ -141,22 +142,22 @@ def register_vector_store_and_files(
     print(f"Successfully uploaded {len(file_ids)} files: {file_ids}")
 
     models: List[Model] = client.models.list()
-    # TODO: In 0.4.2, the model.id is the identifier, but in 0.3.5, the model.id is the identifier
-    matching_model: Optional[Model] = next((m for m in models if m.identifier == embedding_model), None)
+    # TODO: In 0.4.2, the model.id is the identifier, but in 0.3.5, the model.identifier is the identifier
+    matching_model: Optional[Model] = next((m for m in models if m.id == embedding_model), None)
 
     if not matching_model:
-        available = [m.identifier for m in models]
+        available = [m.id for m in models]
         raise ValueError(
             f"Model '{embedding_model}' not found. Available: {available}"
         )
 
     # TODO: In 0.4.2, the model.api_model_type is the model type, but in 0.3.5, the model.api_model_type is the model type
-    # model_type = (
-    #     matching_model.custom_metadata.get("model_type")
-    #     if matching_model.custom_metadata
-    #     else None
-    # )
-    model_type = matching_model.api_model_type
+    model_type = (
+        matching_model.custom_metadata.get("model_type")
+        if matching_model.custom_metadata
+        else None
+    )
+    # model_type = matching_model.api_model_type
     print(f"Matching model: {matching_model}")
     print(f"Model type: {model_type}")
 
@@ -167,8 +168,8 @@ def register_vector_store_and_files(
 
     embedding_dimension = int(
         # TODO: In 0.4.2, the model.custom_metadata.get("embedding_dimension") is the embedding dimension, but in 0.3.5, the model.metadata.get("embedding_dimension") is the embedding dimension
-        #float(matching_model.custom_metadata.get("embedding_dimension"))
-        float(matching_model.metadata.get("embedding_dimension"))
+        float(matching_model.custom_metadata.get("embedding_dimension"))
+        # float(matching_model.metadata.get("embedding_dimension"))
     )
 
     # Warm up the embedding model

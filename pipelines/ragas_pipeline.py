@@ -35,10 +35,11 @@ PYTORCH_IMAGE = "quay.io/modh/odh-pipeline-runtime-pytorch-cuda-py312-ubi9@sha25
 
 DEFAULT_METRICS = "answer_relevancy,faithfulness,context_precision,context_recall"
 
+LLAMA_STACK_CLIENT_VERSION = "0.4.2"
 
 @dsl.component(
     base_image=PYTORCH_IMAGE,
-    packages_to_install=["llama-stack-client==0.3.5", "httpx"],
+    packages_to_install=[f"llama-stack-client=={LLAMA_STACK_CLIENT_VERSION}", "httpx"],
 )
 def discover_mcp_tools(
     tools: str = "",
@@ -214,7 +215,7 @@ def load_base_dataset_from_git(
 
 @dsl.component(
     base_image=PYTORCH_IMAGE,
-    packages_to_install=["llama-stack-client==0.3.5", "httpx"],
+    packages_to_install=[f"llama-stack-client=={LLAMA_STACK_CLIENT_VERSION}", "httpx"],
 )
 def resolve_vector_store(
     vector_store_name: str,
@@ -305,7 +306,7 @@ def resolve_vector_store(
 @dsl.component(
     base_image=PYTORCH_IMAGE,
     packages_to_install=[
-        "llama-stack-client==0.3.5",
+        f"llama-stack-client=={LLAMA_STACK_CLIENT_VERSION}",
         "httpx",
         "portazgo @ git+https://github.com/alpha-hack-program/portazgo.git",
     ],
@@ -433,7 +434,7 @@ def generate_ragas_dataset(
 @dsl.component(
     base_image=PYTORCH_IMAGE,
     packages_to_install=[
-        "llama-stack-client==0.3.5",
+        f"llama-stack-client=={LLAMA_STACK_CLIENT_VERSION}",
         "httpx",
         "ragas",
         "langchain-openai",

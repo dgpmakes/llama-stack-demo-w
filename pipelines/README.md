@@ -15,7 +15,8 @@ export APPS_DOMAIN=$(oc get ingresses.config.openshift.io cluster -o jsonpath='{
 
 ```sh
 export EMBEDDING_MODEL_ID="sentence-transformers/nomic-ai/nomic-embed-text-v1.5"
-export MODEL_ID="llama-4-scout-17b-16e-w4a16/Llama-4-Scout-17B-16E-W4A16"
+# export MODEL_ID="llama-4-scout-17b-16e-w4a16/Llama-4-Scout-17B-16E-W4A16"
+export MODEL_ID="qwen3-8b-fp8-dynamic/qwen3-8b-fp8-dynamic"
 export VECTOR_STORE_NAME="rag-store-pgvector"
 export RANKER="default"
 export SCORE_THRESHOLD="0.0"
@@ -27,27 +28,31 @@ export LLAMA_STACK_SECURE="True"
 export LOG_LEVEL="DEBUG"
 export SEARCH_MODE="vector"
 export INSTRUCTIONS="You are a helpful AI assistant that uses tools to help citizens of the Republic of Lysmark. Answers should be concise and human readable. AVOID references to tools or function calling nor show any JSON. Infer parameters for function calls or instead use default values or request the needed information from the user."
-export TOOLS="all"
+export TOOLS="compatibility-engine,cluster-insights,eligibility-engine"
 
 ```
 
 Run:
 
 ```sh
+AGENT_TYPE=default
+AGENT_PATTERN=plan_execute
+SUFFIX="${AGENT_TYPE}-${AGENT_PATTERN}"
 # Generate RAGAS dataset (base dataset from file; Llama Stack connection and options from env)
 uv run python ragas_dataset_generator.py ../materials/datasets/base_dataset_small.json \
   --vector-store-name "$VECTOR_STORE_NAME" \
   --model-id "$MODEL_ID" \
   --instructions "${INSTRUCTIONS}" \
   --tools "$TOOLS" \
-  --search-mode ${SEARCH_MODE} \
+  --retrieval-mode ${SEARCH_MODE} \
   --file-search-max-chunks "${FILE_SEARCH_MAX_CHUNKS:-10}" \
   --file-search-score-threshold "${SCORE_THRESHOLD:-0.0}" \
   --file-search-max-tokens-per-chunk "${FILE_SEARCH_MAX_TOKENS_PER_CHUNK:-512}" \
-  -o ragas_dataset.json
+  --agent-type ${AGENT_TYPE} --pattern simple \
+  -o ragas_dataset-${SUFFIX}.json
 ```
 
-Use a specific base dataset path if needed (e.g. `materials/datasets/base_dataset_small.json`). `LLAMA_STACK_HOST`, `LLAMA_STACK_PORT`, and `LLAMA_STACK_SECURE` are read from the environment by the script.
+Optional: `--agent-type default|lang-graph` (default: `default`), `--pattern simple|plan_execute` (default: `simple`). Use a specific base dataset path if needed (e.g. `materials/datasets/base_dataset_small.json`). `LLAMA_STACK_HOST`, `LLAMA_STACK_PORT`, and `LLAMA_STACK_SECURE` are read from the environment by the script.
 
 # Run RAGAS evaluation of a dataset
 

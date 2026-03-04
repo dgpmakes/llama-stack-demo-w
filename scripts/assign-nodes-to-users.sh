@@ -80,10 +80,11 @@ done < <(echo "$NODES_JSON" | jq -r --arg key "$CUSTOM_LABEL" '
 ')
 
 AVAILABLE="${#UNASSIGNED_NODES[@]}"
+ALREADY_ASSIGNED="${#USERS_WITH_NODES[@]}"
+MISSING=$((NUM_USERS - ALREADY_ASSIGNED))
 
-if [[ "$AVAILABLE" -lt "$NUM_USERS" ]]; then
-  MISSING=$((NUM_USERS - AVAILABLE))
-  echo "Warning: Not enough unassigned nodes. Need ${NUM_USERS}, available ${AVAILABLE}, missing ${MISSING}." >&2
+if [[ "$AVAILABLE" -lt "$MISSING" ]]; then
+  echo "Warning: Not enough unassigned nodes. Need ${NUM_USERS}, ${ALREADY_ASSIGNED} assigned, ${AVAILABLE} available, ${MISSING} missing." >&2
   for (( u = 1; u <= NUM_USERS; u++ )); do
     if ! has_node "$u"; then
       echo "  No node was assigned to user${u}." >&2
