@@ -100,6 +100,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "agent_type" not in st.session_state:
     st.session_state.agent_type = "default"
+if "pattern" not in st.session_state:
+    st.session_state.pattern = "simple"
 if "instructions" not in st.session_state:
     st.session_state.instructions = os.environ.get(
         "SYSTEM_INSTRUCTIONS",
@@ -123,6 +125,15 @@ with st.sidebar:
         help="default: Llama Stack Responses API | lang_graph: LangGraph Agent",
     )
     st.session_state.agent_type = agent_type
+
+    pattern = st.selectbox(
+        "Pattern",
+        options=["simple", "plan_execute"],
+        index=["simple", "plan_execute"].index(st.session_state.pattern),
+        help="simple: single call | plan_execute: planner selects tools, then executor",
+    )
+    st.session_state.pattern = pattern
+
     st.info(
         "default: portazgo (Llama Stack Responses API)"
         if agent_type == "default"
@@ -236,7 +247,7 @@ st.title("🦙 LlamaStack Chat (portazgo)")
 host = os.environ.get("LLAMA_STACK_HOST", "localhost")
 port = os.environ.get("LLAMA_STACK_PORT", "8080")
 secure = os.environ.get("LLAMA_STACK_SECURE", "false")
-st.caption(f"🔗 {host}:{port} (secure={secure}) | 🤖 {selected_model_id or 'Not selected'} | 🔧 {agent_type}")
+st.caption(f"🔗 {host}:{port} (secure={secure}) | 🤖 {selected_model_id or 'Not selected'} | 🔧 {agent_type} / {st.session_state.pattern}")
 
 st.divider()
 
@@ -385,6 +396,7 @@ if prompt := st.chat_input("Type your message here..."):
             file_search_max_chunks=file_search_max_chunks,
             file_search_score_threshold=file_search_score_threshold,
             file_search_max_tokens_per_chunk=file_search_max_tokens_per_chunk,
+            pattern=st.session_state.pattern,
         )
         if "strip_think_blocks" in inspect.signature(Agent.invoke_stream).parameters:
             invoke_kwargs["strip_think_blocks"] = not st.session_state.show_think_tokens
