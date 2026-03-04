@@ -14,7 +14,7 @@ routeTimeout: 1m
 # RAG default values
 ragDefaults:
   embeddingModel:
-    # modelId: nomic-embed-text-v1.5
+    # modelId: nomic-embed-text-v1.5 => This generates an trust remote code error which is currently a bug in llama stack
     modelId: granite-embedding-125m-english
     # providerModelId: nomic-ai/nomic-embed-text-v1.5
     providerModelId: ibm-granite/granite-embedding-125m-english
@@ -45,7 +45,7 @@ lsdResources:
     cpu: 2
     memory: 8Gi
 
-llamaStackDemoCoreImage: quay.io/atarazana/llama-stack-demo-core:0.6.2
+llamaStackDemoCoreImage: quay.io/atarazana/llama-stack-demo-core:0.7.0
 
 loaderDelay: 15
 loaderJobRetries: 60
