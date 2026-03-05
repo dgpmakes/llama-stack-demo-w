@@ -286,8 +286,9 @@ spec:
           echo ""
           echo "Patching MCP server entries in ConfigMap..."
           {{- range .Values.mcpServers }}
-          SERVER_KEY="{{ .id }}-MCP-Server"
-          SERVER_URL="https://{{ .host }}-$SOURCE_NAMESPACE.$APPS_DOMAIN{{ .uri }}"
+          # Server Key adds the namespace to the name to avoid collisions
+          SERVER_KEY="{{ .id }}-${SOURCE_NAMESPACE}-MCP-Server"
+          SERVER_URL="https://{{ .host }}-${SOURCE_NAMESPACE}.${APPS_DOMAIN}{{ .uri }}"
           SERVER_DESC="{{ .description | default "" }}"
           SERVER_TRANSPORT="{{ .mcp_transport }}"
           # Build JSON value in same multi-line format as ConfigMap template (| block)
