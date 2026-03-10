@@ -1,0 +1,47 @@
+{{- if .Values.otelCollector.enabled }}
+---
+# OpenTelemetry Instrumentation CR for Python auto-instrumentation.
+#
+# The OpenTelemetry Operator uses this CR when it injects its init container into pods.
+# Pods opt in via the namespace annotation:
+#   instrumentation.opentelemetry.io/inject-python: {{ .Values.app }}-instrumentation
+#
+# The annotation is added to each workshop namespace by scripts/setup-rbac.sh.
+# Once annotated, any new pod in the namespace (including those created by the
+# LlamaStackDistribution operator) automatically receives the OTel SDK at startup.
+#
+# Container-level env vars (OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT, etc.)
+# set in lsd.yaml take precedence over the values below and are used by the SDK.
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: {{ .Values.app }}-instrumentation
+  labels:
+    app: {{ .Values.app }}
+    app.kubernetes.io/name: {{ include "rag-lsd.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: {{ .Values.partOf }}
+    app.kubernetes.io/component: otel-instrumentation
+spec:
+  # Fallback exporter endpoint. Overridden by OTEL_EXPORTER_OTLP_ENDPOINT in the container.
+  exporter:
+    endpoint: {{ .Values.otelCollector.endpoint }}
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  sampler:
+    type: parentbased_traceidratio
+    argument: "1"
+  python:
+    env:
+      # These are fallback values; the container env vars in lsd.yaml take precedence.
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: {{ .Values.otelCollector.endpoint | quote }}
+      - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: {{ .Values.otelCollector.protocol | quote }}
+      - name: OTEL_PYTHON_DISABLED_INSTRUMENTATIONS
+        value: {{ .Values.otelCollector.pythonDisabledInstrumentations | quote }}
+      - name: OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED
+        value: {{ .Values.otelCollector.pythonLoggingAutoInstrumentationEnabled | quote }}
+{{- end }}
