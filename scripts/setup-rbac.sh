@@ -13,6 +13,12 @@
 # MLflow (per namespace): Role and RoleBinding pipeline-runner-dspa-mlflow so
 #   ServiceAccount pipeline-runner-dspa can access mlflow.kubeflow.org resources.
 #
+# Argo CD (cluster-wide):
+#   ClusterRole credentialsrequest-manager + ClusterRoleBinding argocd-credentialsrequest-manager
+#     (cloudcredential.openshift.io, servicemonitors, cert-manager.io).
+#   ClusterRole argocd-application-manager + ClusterRoleBinding argocd-application-manager
+#     (serviceaccounts, secrets, services, deployments, routes in all namespaces) so Argo CD can sync apps.
+#
 # Usage: setup-rbac.sh [--dry-run] <number_of_users>
 # Env:   CUSTOM_PROJECT  Project/namespace prefix (default: llama-stack-demo)
 
@@ -24,6 +30,8 @@ ODS_NS="redhat-ods-applications"
 SA_NAME="configmap-patcher"
 CR_NAME="configmap-patcher-ingress-reader"
 ROLE_NAME="configmap-patcher-mcp-servers"
+ARGOCD_NS="openshift-gitops"
+ARGOCD_SA="openshift-gitops-argocd-application-controller"
 
 usage() {
   echo "Usage: $0 [--dry-run] <number_of_users>" >&2
@@ -73,7 +81,7 @@ if [[ "$DRY_RUN" -eq 0 ]]; then
   fi
 fi
 
-echo "Creating configmap-patcher and MLflow RBAC for ${NUM_USERS} namespace(s)..."
+echo "Creating configmap-patcher, MLflow, and Argo CD RBAC for ${NUM_USERS} namespace(s)..."
 
 # Single shared ClusterRole (ingress read)
 if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -109,6 +117,67 @@ rules:
     resources: ["configmaps"]
     resourceNames: ["gen-ai-aa-mcp-servers"]
     verbs: ["get", "list", "patch", "update"]
+EOF
+fi
+
+# Argo CD: ClusterRole + ClusterRoleBinding for syncing apps (all namespaces)
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  echo "  Would create ClusterRole and ClusterRoleBinding argocd-application-manager"
+else
+  run oc apply -f - <<EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argocd-application-manager
+rules:
+- apiGroups: [""]
+  resources:
+  - serviceaccounts
+  - secrets
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups: ["apps"]
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups: ["route.openshift.io"]
+  resources:
+  - routes
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argocd-application-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argocd-application-manager
+subjects:
+- kind: ServiceAccount
+  name: ${ARGOCD_SA}
+  namespace: ${ARGOCD_NS}
 EOF
 fi
 
@@ -217,5 +286,5 @@ echo ""
 if [[ "$DRY_RUN" -eq 1 ]]; then
   echo "Dry-run complete. Run without --dry-run to apply."
 else
-  echo "Done. configmap-patcher and MLflow RBAC are pre-created for workshop namespaces."
+  echo "Done. configmap-patcher, MLflow, and Argo CD RBAC are pre-created (Argo CD bindings are cluster-wide)."
 fi

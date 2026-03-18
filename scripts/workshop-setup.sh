@@ -9,7 +9,8 @@
 #         file and prints instructions for the Administrator to apply it manually.
 # Step 2: Creates projects (${CUSTOM_PROJECT}-user1, ...) with labels.
 # Step 3: Creates group "workshop", adds users, grants admin per project (idempotent).
-# Step 4: Runs setup-monitoring.sh, setup-hardware-profile.sh, and setup-grafana-proxy-rbac.sh.
+# Step 4: Runs setup-monitoring.sh, setup-hardware-profile.sh, setup-minio.sh, setup-mlflow.sh,
+#         setup-rbac.sh, and setup-grafana-proxy-rbac.sh.
 # Step 5: Runs assign-nodes-to-users.sh unless --no-assign is passed.
 #
 # Projects: ${CUSTOM_PROJECT}-user1, ${CUSTOM_PROJECT}-user2, ...
@@ -165,10 +166,11 @@ echo ""
 # -----------------------------------------------------------------------------
 # Step 4: Setup monitoring, MLflow, and Grafana proxy RBAC
 # -----------------------------------------------------------------------------
-echo "Step 4: Setting up monitoring, hardware profile, MLflow, configmap-patcher RBAC, and Grafana proxy RBAC..."
+echo "Step 4: Setting up monitoring, hardware profile, MinIO, MLflow, configmap-patcher RBAC, and Grafana proxy RBAC..."
 export CUSTOM_PROJECT
 "$SCRIPT_DIR/setup-monitoring.sh"
 "$SCRIPT_DIR/setup-hardware-profile.sh"
+"$SCRIPT_DIR/setup-minio.sh"
 "$SCRIPT_DIR/setup-mlflow.sh" "$NUM_USERS"
 "$SCRIPT_DIR/setup-rbac.sh" "$NUM_USERS"
 "$SCRIPT_DIR/setup-grafana-proxy-rbac.sh" "$NUM_USERS"

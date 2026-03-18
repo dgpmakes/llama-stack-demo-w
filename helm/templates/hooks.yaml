@@ -930,7 +930,12 @@ spec:
             --evaluation-embedding-model-id "${RAGAS_SCHEDULER_EVALUATION_EMBEDDING_MODEL_ID}" \
             --ranker "${RAGAS_SCHEDULER_RANKER}" \
             --agent-type "${RAGAS_SCHEDULER_AGENT_TYPE}" \
-            --pattern "${RAGAS_SCHEDULER_PATTERN}" $( [ "${RAGAS_SCHEDULER_FORCE_FILE_SEARCH}" = "true" ] && echo "--force-file-search" )
+            --pattern "${RAGAS_SCHEDULER_PATTERN}" \
+            --mlflow-tracking-uri "${RAGAS_SCHEDULER_MLFLOW_TRACKING_URI}" \
+            --mlflow-workspace "${RAGAS_SCHEDULER_MLFLOW_WORKSPACE}" \
+            --mlflow-experiment-name "${RAGAS_SCHEDULER_MLFLOW_EXPERIMENT_NAME}" \
+            $( [ "${RAGAS_SCHEDULER_MLFLOW_INSECURE_TLS}" = "true" ] && echo "--mlflow-insecure-tls" ) \
+            $( [ "${RAGAS_SCHEDULER_FORCE_FILE_SEARCH}" = "true" ] && echo "--force-file-search" )
           echo ""
           echo "=== RAGAS scheduler finished successfully ==="
         env:
@@ -996,6 +1001,14 @@ spec:
           value: {{ .Values.pipelines.scheduler.params.agent_type | default "default" | quote }}
         - name: RAGAS_SCHEDULER_PATTERN
           value: {{ .Values.pipelines.scheduler.params.pattern | default "simple" | quote }}
+        - name: RAGAS_SCHEDULER_MLFLOW_TRACKING_URI
+          value: {{ .Values.pipelines.scheduler.params.mlflow_tracking_uri | default "https://mlflow.redhat-ods-applications.svc.cluster.local:8443" | quote }}
+        - name: RAGAS_SCHEDULER_MLFLOW_WORKSPACE
+          value: {{ .Values.pipelines.scheduler.params.mlflow_workspace | default "" | quote }}
+        - name: RAGAS_SCHEDULER_MLFLOW_EXPERIMENT_NAME
+          value: {{ .Values.pipelines.scheduler.params.mlflow_experiment_name | default "ragas-scoring-experiment" | quote }}
+        - name: RAGAS_SCHEDULER_MLFLOW_INSECURE_TLS
+          value: {{ .Values.pipelines.scheduler.params.mlflow_insecure_tls | default false | toString | quote }}
         resources:
           limits:
             cpu: '1'

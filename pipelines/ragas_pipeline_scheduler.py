@@ -242,6 +242,34 @@ def parse_args():
         ),
         help="Embedding model ID for RAGAS evaluation metrics.",
     )
+    parser.add_argument(
+        "--mlflow-tracking-uri",
+        default=os.environ.get(
+            "RAGAS_SCHEDULER_MLFLOW_TRACKING_URI",
+            "https://mlflow.redhat-ods-applications.svc.cluster.local:8443",
+        ),
+        help="MLflow tracking server URL.",
+    )
+    parser.add_argument(
+        "--mlflow-workspace",
+        default=os.environ.get("RAGAS_SCHEDULER_MLFLOW_WORKSPACE", ""),
+        help="MLflow workspace name (e.g. pod namespace when running in K8s).",
+    )
+    parser.add_argument(
+        "--mlflow-experiment-name",
+        default=os.environ.get(
+            "RAGAS_SCHEDULER_MLFLOW_EXPERIMENT_NAME",
+            "ragas-scoring-experiment",
+        ),
+        help="MLflow experiment name for RAGAS runs.",
+    )
+    parser.add_argument(
+        "--mlflow-insecure-tls",
+        action="store_true",
+        default=os.environ.get("RAGAS_SCHEDULER_MLFLOW_INSECURE_TLS", "").lower()
+        in ("true", "1", "yes"),
+        help="If set, skip TLS verification for MLflow (e.g. self-signed certs).",
+    )
 
     return parser.parse_args()
 
@@ -349,6 +377,8 @@ def main():
         vector_store_name = f"{args.vector_store_base_name}-{provider}"
         job_name = f"ragas-{provider}-{retrieval_mode}"
 
+        # Only pass parameters that the ragas-pipeline accepts as pipeline inputs.
+        # poll_interval, max_wait_seconds, mode are scheduler/runner options only.
         params = {
             "git_repo": args.git_repo,
             "git_context": args.git_context,
@@ -369,11 +399,12 @@ def main():
             "agent_type": args.agent_type,
             "pattern": args.pattern,
             "metrics": args.metrics,
-            "mode": args.mode,
             "batch_size": args.batch_size,
             "timeout": args.timeout,
-            "max_wait_seconds": args.max_wait_seconds,
-            "poll_interval": args.poll_interval,
+            "mlflow_tracking_uri": args.mlflow_tracking_uri,
+            "mlflow_workspace": args.mlflow_workspace,
+            "mlflow_experiment_name": args.mlflow_experiment_name,
+            "mlflow_insecure_tls": args.mlflow_insecure_tls,
         }
 
         print(f"\n=== Creating recurring run: {job_name} (every {args.interval_minutes} min) ===")

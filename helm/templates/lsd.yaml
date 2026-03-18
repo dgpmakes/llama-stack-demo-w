@@ -20,7 +20,7 @@ spec:
         - redhat-ods-applications
         - {{ .Release.Namespace }}
       labels:
-        - app.kubernetes.io\/part-of/{{ .Values.partOf }}
+        # - app.kubernetes.io\/part-of/{{ .Values.partOf }}
         - app/llama-stack
   server:  
     userConfig:
