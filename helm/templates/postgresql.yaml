@@ -47,6 +47,7 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
+  storageClassName: {{ .Values.storageClassName }}
   resources:
     requests:
       storage: 10Gi

@@ -49,6 +49,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: {{ .Values.storageClassName }}
   resources:
     requests:
       storage: {{ .Values.milvus.storage | default "20Gi" }}

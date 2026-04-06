@@ -2,6 +2,9 @@
 app: llama-stack-demo
 partOf: llama-stack-demo
 
+# Storage class for all PVCs (e.g. nfs-csi, standard, gp2)
+storageClassName: nfs-csi
+
 lsdName: rh-dev
 # lsdImage: registry.redhat.io/rhoai/odh-llama-stack-core-rhel9:v2.23
 # lsdImage: quay.io/opendatahub/llama-stack@sha256:244117b58bdc5261e810547dd6e2e23e658924af3af70b8ad8ce4b5e34b4ac63
