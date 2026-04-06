@@ -54,17 +54,15 @@ loaderJobRetries: 60
 milvusDbPath: /tmp/milvus.db
 fmsOchestratorUrl: http://localhost:8080
 
-# Deploy OpenShift AI Playground
+# Deploy Playground (Python agentic app)
 playground:
   enabled: false
-
-# Deploy Python App Playground
 pythonapp:
-  enabled: false
+  enabled: true
 
 # Pipelines configuration
 pipelines:
-  enabled: false
+  enabled: true
   # Python image from OpenShift internal registry (used for pipeline upserter and runner)
   pythonImage:
     version: "3.12"
