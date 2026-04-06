@@ -1,0 +1,315 @@
+# Application configuration
+app: llama-stack-demo
+partOf: llama-stack-demo
+
+lsdName: rh-dev
+# lsdImage: registry.redhat.io/rhoai/odh-llama-stack-core-rhel9:v2.23
+# lsdImage: quay.io/opendatahub/llama-stack@sha256:244117b58bdc5261e810547dd6e2e23e658924af3af70b8ad8ce4b5e34b4ac63
+lsdBaseDir: /opt/app-root/src
+lsdPort: 8321
+
+# Route timeout for HAProxy (default 30s is too short for model loading)
+routeTimeout: 1m
+
+# RAG default values
+ragDefaults:
+  embeddingModel:
+    # modelId: nomic-embed-text-v1.5 => This generates an trust remote code error which is currently a bug in llama stack
+    modelId: granite-embedding-125m-english
+    # providerModelId: nomic-ai/nomic-embed-text-v1.5
+    providerModelId: ibm-granite/granite-embedding-125m-english
+    vectorDimension: 768
+    modelProvider: sentence-transformers
+  chunkSizeInTokens: 800
+  chunkOverlapInTokens: 400
+  enableRagas: true
+  # modelId: llama-3-1-8b-w4a16/llama-3-1-8b-w4a16
+  modelId: redhataiqwen3-8b-fp8-dynamic/redhataiqwen3-8b-fp8-dynamic
+  # evaluationModelId: llama-4-scout-17b-16e-w4a16/Llama-4-Scout-17B-16E-W4A16
+  evaluationModelId: redhataiqwen3-8b-fp8-dynamic/redhataiqwen3-8b-fp8-dynamic
+  vectorStoreBaseName: rag-store
+  vectorStoreProviderIds: "milvus-remote, pgvector"
+
+lsdVectorStoreProviderId: milvus
+lsdVectorStoreName: rag-store
+lsdRanker: default
+lsdScoreThreshold: 0.7
+lsdMaxNumResults: 10
+lsdTestQuery: Tell me about taxes in Lysmark.
+lsdLogLevel: DEBUG
+
+lsdResources:
+  limits:
+    cpu: 2
+    memory: 8Gi
+  requests:
+    cpu: 2
+    memory: 8Gi
+
+llamaStackDemoCoreImage: quay.io/atarazana/llama-stack-demo-core:0.7.1
+
+loaderDelay: 15
+loaderJobRetries: 60
+
+milvusDbPath: /tmp/milvus.db
+fmsOchestratorUrl: http://localhost:8080
+
+# Deploy OpenShift AI Playground
+playground:
+  enabled: false
+
+# Deploy Python App Playground
+pythonapp:
+  enabled: false
+
+# Pipelines configuration
+pipelines:
+  enabled: false
+  # Python image from OpenShift internal registry (used for pipeline upserter and runner)
+  pythonImage:
+    version: "3.12"
+    name: "python"
+    tag: "3.12-ubi9"
+  store: kubernetes
+  connection:
+    name: pipelines
+    type: s3
+    typeProtocol: s3
+    typeRef: s3
+    description: 'Pipelines connection'
+    displayName: 'Pipelines connection'
+    awsAccessKeyId: minio
+    awsSecretAccessKey: minio123
+    awsDefaultRegion: none
+    awsS3Bucket: pipelines
+    host: minio.minio.svc
+    port: 9000
+    scheme: http
+  # Git repository for pipeline definitions
+  git:
+    repo: https://github.com/alpha-hack-program/llama-stack-demo.git
+    ref: main
+    context: pipelines
+  # Comma-separated list of pipeline names (without .py extension)
+  names: "rag_pipeline, ragas_pipeline"
+  # Health check configuration for DSPA API
+  healthCheck:
+    maxRetries: 30
+    delay: 10
+  # Job backoff limit
+  backoffLimit: 3
+  # Pipeline runner configuration
+  runner:
+    pipelineName: rag-pipeline
+    experimentName: rag-pipeline-experiment
+    params:
+      gitRepo: alpha-hack-program/llama-stack-demo
+      gitContext: client/docs
+      gitRef: main
+      filenames: "2025_102_SD.md, 2025_61-FR_INT.md, 2025_61-FR.md, 2025_73_JU.md, 2025_88_GD.md, 2025_94_FC.md, 2025-47-SA-Act.md, 2025-47-SA-R1.md, parasol-earnings-report.md"
+      ranker: default
+      useGpu: false
+  scheduler:
+    pipelineName: ragas-pipeline
+    experimentName: ragas-scoring-experiment
+    intervalMinutes: 2 # Interval between runs in minutes
+    params:
+      gitRepo: alpha-hack-program/llama-stack-demo
+      gitContext: materials/datasets
+      gitRef: main
+      base_dataset_filename: base_dataset_small.json
+      tools: "all"
+      instructions: "You are a helpful assistant that can answer questions about the documents in the vector store."
+      retrieval_modes: "vector, hybrid"
+      file_search_max_chunks: 5
+      file_search_score_threshold: 0
+      file_search_max_tokens_per_chunk: 512
+      ranker: "default"
+      force_file_search: true
+      agent_type: "default"  # default | lang-graph
+      pattern: "simple"     # simple | plan_execute
+      metrics: "answer_relevancy,faithfulness,context_precision,context_recall"
+      mode: "inline" # RAGAS evaluation mode (e.g. inline or remote)
+      batch_size: 0
+      timeout: 600
+      max_wait_seconds: 900
+      poll_interval: 5
+      vectorStoreProviderId: "milvus, milvus-remote, pgvector"
+    
+# PostgreSQL configuration
+postgres:
+  # Deploy PostgreSQL infrastructure
+  deploy: true
+  # Use remote::pgvector provider
+  enablePgVector: true
+  # Connection settings (used for both deployed and remote)
+  host: pg-lsd-service
+  port: 5432
+  user: llamastack
+  password: llamastack
+  db: llamastack
+  image: docker.io/pgvector/pgvector:pg16
+  cloudbeaverImage: docker.io/dbeaver/cloudbeaver:25.3.4
+
+# Milvus configuration
+milvus:
+  # Deploy Milvus infrastructure (etcd + milvus-standalone)
+  deploy: true
+  # Use remote::milvus provider instead of inline::milvus
+  enableRemote: true
+  # Connection settings (used for both deployed and remote)
+  host: milvus-service
+  port: 19530
+  # Local deployment settings (used when deploy: true)
+  rootPassword: Milvus
+  storage: 20Gi
+  image: milvusdb/milvus:v2.6.0
+  etcdImage: quay.io/coreos/etcd:v3.5.5
+  attuImage: docker.io/zilliz/attu:v2.5
+  # Remote Milvus auth settings (used when enableRemote: true)
+  token: ""
+  secure: "false"
+  consistencyLevel: Session
+  caPemPath: ""
+  clientPemPath: ""
+  clientKeyPath: ""
+
+docsFolder: /data/docs
+
+otelCollector:
+  enabled: false
+  endpoint: http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318
+  protocol: http/protobuf
+  tracesEndpoint: http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/traces
+  metricsEndpoint: http://data-science-collector-collector-headless.redhat-ods-monitoring.svc.cluster.local:4318/v1/metrics
+  resourceAttributes: service.version=1.0.0,deployment.environment=development
+  serviceName: llama-stack-demo
+  serviceVersion: 1.0.0
+  deploymentEnvironment: development
+  pythonDisabledInstrumentations: sqlite3
+  pythonLoggingAutoInstrumentationEnabled: true
+  bspMaxQueueSize: 512
+  bspScheduleDelay: 5000
+  bspMaxExportBatchSize: 100
+  bspExportTimeout: 30000
+  metricExportInterval: 60000
+  telemetrySinks: otel_trace,otel_metric
+
+grafana:
+  proxyRbac:
+    # Set to false when RBAC is pre-created by scripts/setup-grafana-proxy-rbac.sh (workshop mode)
+    create: false
+
+monitoring:
+  enable: false
+  dsciName: default-dsci
+  namespace: redhat-ods-monitoring
+  patcherImage: registry.redhat.io/openshift4/ose-cli:v4.14
+  # General resources (Tempo, OTel collector) are created by scripts/setup-monitoring.sh
+  # and are not part of this release. Set to true only if this chart should create them.
+  deployTempo: false
+  tempoName: data-science-tempomonolithic
+  tempoStorageBackend: pv
+  tempoStorageSize: 10Gi
+  tempoStorageClassName: ""
+  tempoOtlpHttpEndpoint: http://tempo-data-science-tempomonolithic.redhat-ods-monitoring.svc.cluster.local:4318
+  metrics:
+    replicas: 1
+    retention: 90d
+    size: 50Gi
+  traces:
+    sampleRatio: "1.0"
+    storage:
+      backend: pv
+      retention: 2160h0m0s
+      size: 100Gi
+  deployCollector: false
+  collectorName: data-science-collector
+  collectorReplicas: 1
+  tempoUrl: http://tempo-data-science-tempomonolithic.redhat-ods-monitoring.svc.cluster.local:3200
+  prometheusUrl: http://data-science-monitoringstack-prometheus.redhat-ods-monitoring.svc.cluster.local:9090
+
+# Local models - deployed in the cluster (safe to commit to git)
+# Remote models with API tokens should go in values-secrets.yaml as remoteModels
+localModels:
+  - name: redhataiqwen3-8b-fp8-dynamic
+    forcedName: redhataiqwen3-8b-fp8-dynamic
+    strict: true
+    url: http://redhataiqwen3-8b-fp8-dynamic-predictor:8080/v1
+    maxModelLen: '25000'
+    maxTokens: '4096'
+    tlsVerify: false
+
+mcpServers:
+  - id: eligibility-engine
+    provider_id: model-context-protocol
+    runtime: rust
+    vcs:
+      uri: https://github.com/alpha-hack-program/eligibility-engine-mcp-rs.git
+      ref: main
+      path: .
+    image: quay.io/atarazana/eligibility-engine-mcp-rs:2.0.2
+    mcp_transport: "streamable-http"
+    protocol: "http"
+    host: eligibility-engine
+    port: 8000
+    uri: "/mcp"
+    replicas: 1
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 64Mi
+    env:
+      - name: RUST_LOG
+        value: "debug"
+  - id: compatibility-engine
+    provider_id: model-context-protocol
+    runtime: rust
+    vcs:
+      uri: https://github.com/alpha-hack-program/compatibility-engine-mcp-rs.git
+      ref: main
+      path: .
+    image: quay.io/atarazana/compatibility-engine-mcp-rs:2.0.5
+    mcp_transport: "streamable-http"
+    protocol: "http"
+    host: compatibility-engine
+    port: 8000
+    uri: "/mcp"
+    replicas: 1
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 64Mi
+    env:
+      - name: RUST_LOG
+        value: "debug"
+  - id: penalty-engine
+    provider_id: model-context-protocol
+    runtime: rust
+    vcs:
+      uri: https://github.com/alpha-hack-program/penalty-engine-mcp-rs.git
+      ref: main
+      path: .
+    image: quay.io/dgarciap/penalty-engine:1.3.3
+    mcp_transport: "streamable-http"
+    protocol: "http"
+    host: penalty-engine
+    port: 8000
+    uri: "/mcp"
+    replicas: 1
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 250m
+        memory: 64Mi
+    env:
+      - name: RUST_LOG
+        value: "debug"
